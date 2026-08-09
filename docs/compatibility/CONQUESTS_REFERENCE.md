@@ -72,10 +72,12 @@ Terrain values currently covered:
 
 - Four experience levels: Conscript, Regular, Veteran, Elite.
 - Twenty-seven natural resources.
+- The stock Harbor carries the BIQ water-trade flag and the stock Airport carries the air-trade flag.
+- The stock technology tree contains rules that enable trade over sea and over ocean.
 
 ## Behavioral coverage implemented
 
-The public-CI compatibility suite now covers both imported rule parameters and engine behavior for the first Classic-mode slices:
+The public-CI compatibility suite covers both imported rule parameters and engine behavior for the first Classic-mode slices:
 
 - Republic free-unit support across town, city, and metropolis population boundaries and mixed settlement sizes.
 - Hills, mountains, fortification, and river-crossing defense modifiers.
@@ -90,18 +92,20 @@ The public-CI compatibility suite now covers both imported rule parameters and e
 - Declaring war and signing peace invalidate the cached trade network so route availability is recalculated.
 - A road connection to the capital reduces distance corruption compared with the equivalent disconnected city.
 - Resistance state survives native save conversion and is imported from Civ III save citizen records identified as resisters.
+- Harbors connect cities through explored coast tiles.
+- Sea and ocean trade traversal is gated by the corresponding BIQ technology capabilities.
+- Enemy naval units at war block water-trade paths; moving or removing naval units invalidates the cached network so blockades update.
+- Airports merge otherwise disconnected city trade segments.
+- Building and technology changes that create new water/air trade capabilities invalidate the cached trade network.
 
 ## Source-derived contracts still queued
 
-The original data also documents the following behavior that is not yet fully covered or implemented:
+The original data also documents behavior that is not yet fully covered or implemented:
 
 - Golden Age duration is 20 turns, with the associated production and commerce bonuses.
 - A fortress gives +50% defense and a barricade gives +100%; their direct terrain-improvement interaction still needs dedicated behavior tests.
-- Harbor water routes can connect cities when the civilization can safely traverse the relevant water tiles.
-- Enemy naval units can blockade harbor trade routes.
-- Airports can connect cities for trade.
 - Republic, Feudalism, and Democracy are subject to war weariness.
-- A single connected strategic or luxury resource supplies all connected cities in a civilization.
+- A single connected strategic or luxury resource supplies all connected cities in a civilization; broader end-to-end resource-distribution fixtures are still needed.
 - Captured-city resistance can be quelled and eventually ended; the exact turn-by-turn lifecycle still needs fixtures.
 
 ## Test policy
@@ -117,9 +121,8 @@ The original data also documents the following behavior that is not yet fully co
 
 Continue the source-derived behavior work in this order:
 
-1. harbor and airport trade routes, including naval blockade behavior
-2. resistance quelling lifecycle
-3. difficulty/content-citizen behavior beyond import parity
-4. war weariness
-5. Golden Age duration and production/commerce bonuses
-6. resource distribution across connected trade networks
+1. resistance quelling lifecycle
+2. difficulty/content-citizen behavior beyond import parity
+3. war weariness
+4. Golden Age duration and production/commerce bonuses
+5. end-to-end strategic/luxury resource distribution across connected trade networks
