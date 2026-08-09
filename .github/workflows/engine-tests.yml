@@ -1,0 +1,36 @@
+name: Engine tests
+
+on:
+  pull_request:
+    branches:
+      - Development
+  push:
+    branches:
+      - Development
+  workflow_dispatch:
+
+jobs:
+  engine-tests:
+    name: EngineTests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore headless test project
+        run: dotnet restore EngineTests/EngineTests.csproj
+
+      - name: Run headless engine tests
+        run: dotnet test EngineTests/EngineTests.csproj --configuration Release --no-restore --logger "console;verbosity=normal"
