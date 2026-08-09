@@ -17,6 +17,13 @@ Exports/
 # Test runtime files
 EngineTests/data/
 
+# Private original Civilization III files. Keep publisher-owned runtime assets
+# and local compatibility fixtures outside the public repository.
+.private-civ3/
+private-civ3/
+Civ3Original/
+EngineTests/private-civ3/
+
 # Mono-specific ignores
 .mono/
 data_*/
