@@ -1,0 +1,52 @@
+name: Build and test
+
+on:
+  pull_request:
+    branches:
+      - Development
+  push:
+    branches:
+      - Development
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04
+          - macos-26
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.419
+
+      - name: Show toolchain
+        run: dotnet --info
+
+      - name: Restore solution
+        run: dotnet restore C7/C7.sln
+
+      - name: Build full Godot/.NET solution
+        run: dotnet build C7/C7.sln --configuration Release --no-restore
+
+      - name: Run headless engine tests
+        run: dotnet test EngineTests/EngineTests.csproj --configuration Release --no-build --logger "console;verbosity=normal"
+
+      - name: Audit NuGet dependencies
+        run: dotnet list C7/C7.sln package --vulnerable --include-transitive
