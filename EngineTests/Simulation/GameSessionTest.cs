@@ -1,6 +1,5 @@
 using System;
 using C7Engine.Simulation;
-using C7GameData;
 using Xunit;
 
 namespace EngineTests.Simulation;
@@ -8,7 +7,7 @@ namespace EngineTests.Simulation;
 public class GameSessionTest {
 	[Fact]
 	public void SessionRetainsProvidedGameState() {
-		GameData gameData = new(customSeed: 12345);
+		C7GameData.GameData gameData = new(customSeed: 12345);
 
 		GameSession session = new(gameData);
 
