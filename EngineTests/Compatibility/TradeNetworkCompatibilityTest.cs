@@ -7,8 +7,8 @@ using static C7GameData.Tile.TileOverlays;
 namespace EngineTests.Compatibility;
 
 public class TradeNetworkCompatibilityTest {
-	private static (GameData gameData, Player player, Player rival, City firstCity, City capital, Tile middle) MakeThreeTileRoad() {
-		GameData gameData = new() {
+	private static (C7GameData.GameData gameData, Player player, Player rival, City firstCity, City capital, Tile middle) MakeThreeTileRoad() {
+		C7GameData.GameData gameData = new() {
 			gameDifficulty = new Difficulty(),
 			rules = new Rules { DefaultDealDuration = 20 },
 		};
