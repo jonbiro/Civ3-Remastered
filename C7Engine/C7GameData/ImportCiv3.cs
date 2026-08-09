@@ -1600,6 +1600,8 @@ namespace C7GameData {
 				(bldg.AllowsCitySize3, SaveBuilding.Flag.AllowsCitySize3),
 				(bldg.DoublesCityGrowthRate, SaveBuilding.Flag.DoublesCityGrowthRate),
 				(bldg.TreasuryEarnsInterest, SaveBuilding.Flag.TreasuryEarnsInterest),
+				(bldg.AllowsWaterTrade, SaveBuilding.Flag.AllowsWaterTrade),
+				(bldg.AllowsAirTrade, SaveBuilding.Flag.AllowsAirTrade),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);
@@ -1829,6 +1831,8 @@ namespace C7GameData {
 				(t.BonusTechToFirstCivThatResearches, SaveTech.Flag.BonusTechToFirstCivThatResearches),
 				(t.EnablesBridges, SaveTech.Flag.EnablesBridges),
 				(t.DoublesWealthProduction, SaveTech.Flag.DoublesWealthProduction),
+				(t.EnablesTradeOverSea, SaveTech.Flag.EnablesTradeOverSea),
+				(t.EnablesTradeOverOcean, SaveTech.Flag.EnablesTradeOverOcean),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);

@@ -18,22 +18,28 @@ namespace C7Engine.Pathing {
 				}
 			}
 		}
+
+		public void MergeFrom(TradeNetworkSegment other) {
+			tiles.UnionWith(other.tiles);
+			foreach ((Resource resource, int count) in other.resourceCounts) {
+				resourceCounts.TryGetValue(resource, out int existing);
+				resourceCounts[resource] = existing + count;
+			}
+		}
 	}
 
 	// A class for calculating the trade networks.
 	//
 	// The main idea is that calculating the entire empire's trade network once
-	// is faster than doing it repeatedly for each city. By doing it once we can
-	// do a simple flood fill of the road network, rather than needing to do
-	// actual pathfinding between different tiles.
-	//
-	// TODO: Handle harbors and airports.
-	// Land trade already respects wartime borders; sea blockade and air/water
-	// trade are tracked as separate compatibility work.
+	// is faster than doing it repeatedly for each city. Land segments are found
+	// by road/rail flood fill, then qualifying harbor and airport connections
+	// merge those segments into the final network.
 	public class TradeNetwork {
+		private readonly GameData gameData;
 		private Dictionary<Player, Dictionary<City, TradeNetworkSegment>> segments = new();
 
 		public TradeNetwork(GameData gameData) {
+			this.gameData = gameData;
 			foreach (Player p in gameData.players) {
 				ComputeTradeNetwork(p);
 			}
@@ -42,6 +48,129 @@ namespace C7Engine.Pathing {
 		private static bool CanUseLandTradeTile(Player player, Tile tile) {
 			Player tileOwner = tile.OwningPlayer();
 			return tileOwner == null || tileOwner == player || player.IsAtPeaceWith(tileOwner);
+		}
+
+		private static bool CityAllowsWaterTrade(City city) {
+			return city.GetBuildings().Any(cb => cb.building.allowsWaterTrade);
+		}
+
+		private static bool CityAllowsAirTrade(City city) {
+			return city.GetBuildings().Any(cb => cb.building.allowsAirTrade);
+		}
+
+		private bool PlayerHasTradeTech(Player player, Func<Tech, bool> predicate) {
+			return gameData.techs.Any(tech => predicate(tech) && player.knownTechs.Contains(tech.id));
+		}
+
+		private bool HasEnemyNavalBlockader(Player player, Tile tile) {
+			return tile.unitsOnTile.Any(unit =>
+				unit.owner != null
+				&& unit.owner != player
+				&& unit.IsWaterUnit()
+				&& !player.IsAtPeaceWith(unit.owner)
+			);
+		}
+
+		private bool CanUseWaterTradeTile(Player player, Tile tile) {
+			if (tile == Tile.NONE || !tile.IsWater() || !player.HasExploredTile(tile)) {
+				return false;
+			}
+			if (HasEnemyNavalBlockader(player, tile)) {
+				return false;
+			}
+
+			return tile.baseTerrainType.Key switch {
+				"coast" => true,
+				"sea" => PlayerHasTradeTech(player, tech => tech.EnablesTradeOverSea),
+				"ocean" => PlayerHasTradeTech(player, tech => tech.EnablesTradeOverOcean),
+				_ => false,
+			};
+		}
+
+		private void MergeSegments(Player player, TradeNetworkSegment target, TradeNetworkSegment source) {
+			if (target == source) {
+				return;
+			}
+
+			target.MergeFrom(source);
+			Dictionary<City, TradeNetworkSegment> playerSegments = segments[player];
+			foreach (City city in playerSegments.Where(kv => kv.Value == source).Select(kv => kv.Key).ToList()) {
+				playerSegments[city] = target;
+			}
+		}
+
+		private void ConnectAirTrade(Player player) {
+			List<City> airports = player.cities.Where(CityAllowsAirTrade).ToList();
+			if (airports.Count < 2) {
+				return;
+			}
+
+			TradeNetworkSegment target = segments[player][airports[0]];
+			foreach (City airport in airports.Skip(1)) {
+				MergeSegments(player, target, segments[player][airport]);
+			}
+		}
+
+		private int FloodWaterComponent(Player player, Tile start, int componentId, Dictionary<Tile, int> componentByTile) {
+			Queue<Tile> toCheck = new();
+			toCheck.Enqueue(start);
+			componentByTile[start] = componentId;
+
+			while (toCheck.Count > 0) {
+				Tile tile = toCheck.Dequeue();
+				foreach (Tile neighbor in tile.neighbors.Values) {
+					if (componentByTile.ContainsKey(neighbor) || !CanUseWaterTradeTile(player, neighbor)) {
+						continue;
+					}
+					componentByTile[neighbor] = componentId;
+					toCheck.Enqueue(neighbor);
+				}
+			}
+			return componentId;
+		}
+
+		private void ConnectWaterTrade(Player player) {
+			List<City> harbors = player.cities.Where(CityAllowsWaterTrade).ToList();
+			if (harbors.Count < 2) {
+				return;
+			}
+
+			Dictionary<Tile, int> componentByTile = new();
+			Dictionary<int, HashSet<City>> harborsByComponent = new();
+			int nextComponentId = 0;
+
+			foreach (City harbor in harbors) {
+				HashSet<int> adjacentComponents = new();
+				foreach (Tile neighbor in harbor.location.neighbors.Values) {
+					if (!CanUseWaterTradeTile(player, neighbor)) {
+						continue;
+					}
+
+					if (!componentByTile.TryGetValue(neighbor, out int componentId)) {
+						componentId = FloodWaterComponent(player, neighbor, nextComponentId++, componentByTile);
+					}
+					adjacentComponents.Add(componentId);
+				}
+
+				foreach (int componentId in adjacentComponents) {
+					if (!harborsByComponent.TryGetValue(componentId, out HashSet<City> connectedHarbors)) {
+						connectedHarbors = new();
+						harborsByComponent[componentId] = connectedHarbors;
+					}
+					connectedHarbors.Add(harbor);
+				}
+			}
+
+			foreach (HashSet<City> connectedHarbors in harborsByComponent.Values) {
+				if (connectedHarbors.Count < 2) {
+					continue;
+				}
+				City first = connectedHarbors.First();
+				TradeNetworkSegment target = segments[player][first];
+				foreach (City harbor in connectedHarbors.Skip(1)) {
+					MergeSegments(player, target, segments[player][harbor]);
+				}
+			}
 		}
 
 		private void ComputeTradeNetwork(Player player) {
@@ -53,9 +182,6 @@ namespace C7Engine.Pathing {
 					continue;
 				}
 
-				// If we don't know about this city yet, start a new network
-				// segment and do a flood fill for all roads coming from the
-				// city.
 				TradeNetworkSegment segment = new();
 				segments[player][c] = segment;
 
@@ -67,7 +193,7 @@ namespace C7Engine.Pathing {
 					Tile x = toCheck.Dequeue();
 					segment.AddTile(x, player);
 
-					if (x.cityAtTile != null) {
+					if (x.cityAtTile != null && x.cityAtTile.owner == player) {
 						segments[player][x.cityAtTile] = segment;
 					}
 
@@ -78,10 +204,11 @@ namespace C7Engine.Pathing {
 					}
 				}
 			}
+
+			ConnectWaterTrade(player);
+			ConnectAirTrade(player);
 		}
 
-		// Returns the resources and their counts that are available to the given
-		// city.
 		public Dictionary<Resource, int> GetResourcesAvailableToCity(Player player, City city) {
 			TradeNetworkSegment segment = segments[player][city];
 			Dictionary<Resource, int> result = new();
@@ -98,7 +225,7 @@ namespace C7Engine.Pathing {
 				return false;
 			}
 
-			foreach (TradeNetworkSegment segment in segments[p].Values) {
+			foreach (TradeNetworkSegment segment in segments[p].Values.Distinct()) {
 				if (segment.tiles.Contains(t) && segment.resourceCounts.TryGetValue(r, out int count) && count > 0) {
 					return true;
 				}

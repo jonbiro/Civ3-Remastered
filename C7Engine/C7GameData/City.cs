@@ -718,9 +718,15 @@ namespace C7GameData {
 				year = 1, // TODO: Implement in-game year tracking
 				totalCulture = 0
 			});
+			if (building.allowsWaterTrade || building.allowsAirTrade) {
+				EngineStorage.gameData.InvalidateCachedTradeNetwork();
+			}
 		}
 		public void RemoveBuilding(CityBuilding building) {
 			constructed_buildings.Remove(building);
+			if (building.building.allowsWaterTrade || building.building.allowsAirTrade) {
+				EngineStorage.gameData.InvalidateCachedTradeNetwork();
+			}
 		}
 
 		public void AddUnit(UnitPrototype proto, GameData gameData) {

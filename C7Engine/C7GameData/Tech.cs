@@ -12,6 +12,8 @@ namespace C7GameData {
 		public bool BonusTechToFirstCivThatResearches;
 		public bool EnablesBridges;
 		public bool DoublesWealthProduction;
+		public bool EnablesTradeOverSea;
+		public bool EnablesTradeOverOcean;
 
 		// The civilopedia name of the era this tech is part of
 		// (like ERA_Ancient_Times). This is what art lookups are based on.

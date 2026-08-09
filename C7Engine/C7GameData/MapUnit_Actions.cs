@@ -278,6 +278,9 @@ public partial class MapUnit {
 			animate(MapUnit.AnimatedAction.RUN);
 
 		movementPoints.onUnitMove(movementCost);
+		if (IsWaterUnit()) {
+			EngineStorage.gameData.InvalidateCachedTradeNetwork();
+		}
 
 		return true;
 	}

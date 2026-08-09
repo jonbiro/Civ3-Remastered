@@ -879,6 +879,10 @@ namespace C7GameData {
 		}
 
 		private static void TechImprovementCallback(Player player, Tech tech) {
+			if (tech.EnablesTradeOverSea || tech.EnablesTradeOverOcean) {
+				EngineStorage.gameData.InvalidateCachedTradeNetwork();
+			}
+
 			var terraforms = EngineStorage.gameData.Terraforms;
 			if (terraforms.Any(t => t.Improvement is { layer: TerrainImprovement.Layer.Roads } && t.RequiredTech == tech.id)) {
 				foreach (var city in player.cities) {

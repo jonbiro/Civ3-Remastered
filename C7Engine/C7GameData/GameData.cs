@@ -292,6 +292,8 @@ namespace C7GameData {
 		}
 
 		internal void RemoveUnit(MapUnit unit) {
+			bool affectsNavalTrade = unit.IsWaterUnit();
+
 			// Set unit's hit points to zero to indicate that it's no longer alive. Ultimately we may not want to do this. I'm only doing it right
 			// now since this way all the UI needs to do to check if the selected unit has been destroyed is to check its hit points.
 			unit.hitPointsRemaining = 0;
@@ -318,6 +320,9 @@ namespace C7GameData {
 			// and end up introducing a bunch of bugs.
 			// If it ends up being a problem, we could certainly look into this more.
 			owner.tileKnowledge.RecomputeActiveTiles();
+			if (affectsNavalTrade) {
+				InvalidateCachedTradeNetwork();
+			}
 
 			if (!owner.defeated)
 				CheckForCivDestructionAndNotifyUi(unit.owner);
