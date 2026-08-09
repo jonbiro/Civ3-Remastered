@@ -12,7 +12,7 @@ namespace EngineTests.Compatibility;
 /// run in public CI without original game files.
 /// </summary>
 public class MovementCompatibilityTest {
-	private static (Player player, Tile source, Tile target) MakeRoute() {
+	private static (Player player, Tile source, Tile target, TerrainImprovement road, TerrainImprovement railroad) MakeRoute() {
 		TerrainImprovement road = new(ROAD, TerrainImprovement.Layer.Roads, movementCost: 1.0f / 3.0f);
 		TerrainImprovement railroad = new(RAILROAD, TerrainImprovement.Layer.Roads, movementCost: 0.0f);
 		EngineStorage.InitializeGameDataForTests(new C7GameData.GameData {
@@ -39,14 +39,14 @@ public class MovementCompatibilityTest {
 			civilization = new Civilization("Reference Civilization"),
 		};
 
-		return (player, source, target);
+		return (player, source, target, road, railroad);
 	}
 
 	[Fact]
 	public void RoadMovementCostsOneThirdOfAMovementPoint() {
-		(Player player, Tile source, Tile target) = MakeRoute();
-		source.overlays.Add(ROAD);
-		target.overlays.Add(ROAD);
+		var (player, source, target, road, _) = MakeRoute();
+		source.overlays.Add(road);
+		target.overlays.Add(road);
 
 		float cost = TilePath.GetMovementCost(player, source, TileDirection.EAST, target);
 
@@ -55,9 +55,9 @@ public class MovementCompatibilityTest {
 
 	[Fact]
 	public void RailroadMovementCostsZeroMovementPoints() {
-		(Player player, Tile source, Tile target) = MakeRoute();
-		source.overlays.Add(RAILROAD);
-		target.overlays.Add(RAILROAD);
+		var (player, source, target, _, railroad) = MakeRoute();
+		source.overlays.Add(railroad);
+		target.overlays.Add(railroad);
 
 		float cost = TilePath.GetMovementCost(player, source, TileDirection.EAST, target);
 
@@ -66,8 +66,8 @@ public class MovementCompatibilityTest {
 
 	[Fact]
 	public void RoadDoesNotOverrideTerrainUnlessRouteIsContinuous() {
-		(Player player, Tile source, Tile target) = MakeRoute();
-		source.overlays.Add(ROAD);
+		var (player, source, target, road, _) = MakeRoute();
+		source.overlays.Add(road);
 
 		float cost = TilePath.GetMovementCost(player, source, TileDirection.EAST, target);
 

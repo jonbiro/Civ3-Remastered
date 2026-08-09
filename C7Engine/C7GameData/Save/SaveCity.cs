@@ -6,6 +6,7 @@ namespace C7GameData.Save {
 		public string nationality;
 		public ID city;
 		public TileLocation tileWorked;
+		public bool isResisting;
 	}
 
 	public class SaveCityBuilding {
@@ -75,6 +76,7 @@ namespace C7GameData.Save {
 					city = resident.city.id,
 					tileWorked = new TileLocation(resident.tileWorked),
 					citizenType = resident.citizenType.Id,
+					isResisting = resident.isResisting,
 				};
 			});
 			buildings = city.constructed_buildings.ConvertAll(building => new SaveCityBuilding(building));
@@ -117,14 +119,19 @@ namespace C7GameData.Save {
 				return new CityResident {
 					citizenType = citizenTypes.Find(x => x.Id == resident.citizenType),
 					nationality = civilizations.Find(civ => civ.name == resident.nationality),
-					tileWorked = gameMap.tileAt(resident.tileWorked.X, resident.tileWorked.Y),
+					tileWorked = resident.tileWorked.X < 0 || resident.tileWorked.Y < 0
+						? Tile.NONE
+						: gameMap.tileAt(resident.tileWorked.X, resident.tileWorked.Y),
 					city = city,
+					isResisting = resident.isResisting,
 				};
 			});
 
 			// Fill in the back pointers.
 			foreach (CityResident cr in city.residents) {
-				cr.tileWorked.personWorkingTile = cr;
+				if (Tile.IsTileValid(cr.tileWorked)) {
+					cr.tileWorked.personWorkingTile = cr;
+				}
 			}
 
 			// Scenarios don't specify the citizens of each city, only the city

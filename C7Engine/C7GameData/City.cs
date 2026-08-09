@@ -453,13 +453,17 @@ namespace C7GameData {
 		public IEnumerable<StrengthBonus> GetDefenseBonuses() {
 			GameData gD = EngineStorage.gameData;
 
-			// Cities give defense bonuses based on their size.
-			if (residents.Count > gD.rules.MaximumLevel2CitySize) {
-				yield return gD.cityLevel3DefenseBonus;
-			} else if (residents.Count > gD.rules.MaximumLevel1CitySize) {
-				yield return gD.cityLevel2DefenseBonus;
-			} else {
-				yield return gD.cityLevel1DefenseBonus;
+			// Civ III suppresses the normal settlement-size defensive bonus while
+			// any citizens in a captured city are still resisting. Terrain and
+			// building bonuses are handled separately and remain applicable.
+			if (!residents.Any(r => r.isResisting)) {
+				if (residents.Count > gD.rules.MaximumLevel2CitySize) {
+					yield return gD.cityLevel3DefenseBonus;
+				} else if (residents.Count > gD.rules.MaximumLevel1CitySize) {
+					yield return gD.cityLevel2DefenseBonus;
+				} else {
+					yield return gD.cityLevel1DefenseBonus;
+				}
 			}
 
 			bool isTown = residents.Count <= gD.rules.MaximumLevel1CitySize;
@@ -775,7 +779,7 @@ namespace C7GameData {
 		}
 
 		// See https://forums.civfanatics.com/threads/everything-about-corruption-c3c-edition.76619/
-		private float CalculateDistanceCorruption(int numAntiCorruptionBuildings) {
+		private float CalculateDistanceCorruption(GameData gameData, int numAntiCorruptionBuildings) {
 			float maxD = (location.map.numTilesWide + location.map.numTilesTall) / 4;
 
 			float distanceToPalace = owner.citiesWithCorruptionWonders.Min(x => location.RankDistanceTo(x.location));
@@ -783,9 +787,8 @@ namespace C7GameData {
 				distanceToPalace = maxD / 4;
 			}
 
-			// TODO: Update this once we track trade networks.
-			bool connectedTocapital = false;
-			float tradeFactor = connectedTocapital ? 1.0f : 5.0f/4.0f;
+			bool connectedToCapital = gameData.GetTradeNetwork().ConnectedToCapital(owner, this);
+			float tradeFactor = connectedToCapital ? 1.0f : 5.0f/4.0f;
 
 			float govtFactor = owner.government.corruptionType switch {
 				Government.CorruptionType.Minimal => 3.0f/4.0f,
@@ -829,7 +832,7 @@ namespace C7GameData {
 			// TODO: Handle the SPHQ.
 			int numCorruptionReducingSmallWondersInCity = buildings.Count(x => x.building.isForbiddenPalace);
 
-			corruption = CalculateDistanceCorruption(numAntiCorruptionBuildings)
+			corruption = CalculateDistanceCorruption(gameData, numAntiCorruptionBuildings)
 					+ CalculateRankCorruption(gameData, numAntiCorruptionBuildings);
 			// TODO: apply policeman modifiers, before applying the max
 
@@ -860,11 +863,11 @@ namespace C7GameData {
 		// based on the difficulty level, and after that all citizens are born
 		// unhappy. Specialists and resisters are excluded from this.
 		private void InitializeMoodsForDifficulty(Difficulty gameDifficulty) {
-			int numLaborers = residents.Count(x => x.citizenType.IsDefaultCitizen);
+			int numLaborers = residents.Count(x => x.citizenType.IsDefaultCitizen && !x.isResisting);
 			int content = Math.Min(gameDifficulty.NumberOfCitizensBornContent, numLaborers);
 
 			foreach (CityResident r in residents) {
-				if (!r.citizenType.IsDefaultCitizen) {
+				if (!r.citizenType.IsDefaultCitizen || r.isResisting) {
 					continue;
 				}
 
@@ -883,7 +886,7 @@ namespace C7GameData {
 			int result = 0;
 
 			foreach (CityResident r in residents) {
-				if (!r.citizenType.IsDefaultCitizen) {
+				if (!r.citizenType.IsDefaultCitizen || r.isResisting) {
 					continue;
 				}
 
@@ -1043,6 +1046,9 @@ namespace C7GameData {
 			int happyCount = 0;
 			int unhappyCount = 0;
 			foreach (CityResident cr in residents) {
+				if (!cr.citizenType.IsDefaultCitizen || cr.isResisting) {
+					continue;
+				}
 				if (cr.mood == CityResident.Mood.Happy) { ++happyCount; }
 				if (cr.mood == CityResident.Mood.Unhappy) { ++unhappyCount; }
 			}

@@ -27,9 +27,9 @@ namespace C7Engine.Pathing {
 	// do a simple flood fill of the road network, rather than needing to do
 	// actual pathfinding between different tiles.
 	//
-	// TODO: Handle harbors and airports
-	// TODO: Account for passing through the borders of civs we're at war with
-	// TODO: Invalidate the trade network when war status changes.
+	// TODO: Handle harbors and airports.
+	// Land trade already respects wartime borders; sea blockade and air/water
+	// trade are tracked as separate compatibility work.
 	public class TradeNetwork {
 		private Dictionary<Player, Dictionary<City, TradeNetworkSegment>> segments = new();
 
@@ -37,6 +37,11 @@ namespace C7Engine.Pathing {
 			foreach (Player p in gameData.players) {
 				ComputeTradeNetwork(p);
 			}
+		}
+
+		private static bool CanUseLandTradeTile(Player player, Tile tile) {
+			Player tileOwner = tile.OwningPlayer();
+			return tileOwner == null || tileOwner == player || player.IsAtPeaceWith(tileOwner);
 		}
 
 		private void ComputeTradeNetwork(Player player) {
@@ -67,7 +72,7 @@ namespace C7Engine.Pathing {
 					}
 
 					foreach (Tile n in x.neighbors.Values) {
-						if (n.IsRoaded() && seen.Add(n)) {
+						if (n.IsRoaded() && CanUseLandTradeTile(player, n) && seen.Add(n)) {
 							toCheck.Enqueue(n);
 						}
 					}
@@ -102,7 +107,17 @@ namespace C7Engine.Pathing {
 		}
 
 		public bool ConnectedToCapital(Player p, City c) {
-			return segments[p][c] == segments[p][p.cities[0]];
+			if (!segments.TryGetValue(p, out Dictionary<City, TradeNetworkSegment> playerSegments)
+				|| !playerSegments.TryGetValue(c, out TradeNetworkSegment citySegment)) {
+				return false;
+			}
+
+			City capital = p.cities.FirstOrDefault(city => city.IsCapital());
+			if (capital == null || !playerSegments.TryGetValue(capital, out TradeNetworkSegment capitalSegment)) {
+				return false;
+			}
+
+			return citySegment == capitalSegment;
 		}
 	}
 }

@@ -310,6 +310,7 @@ namespace C7GameData {
 			int refuseContactUntilTurn = currentTurn + new Random().Next(5, isSneakAttack ? 16 : 12);
 
 			DeclareWar(this, other, isSneakAttack, refuseContactUntilTurn);
+			EngineStorage.gameData.InvalidateCachedTradeNetwork();
 
 			// Whenever war is declared, re-evaluate priorities.
 			turnsUntilPriorityReevaluation = 0;

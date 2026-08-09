@@ -1157,11 +1157,21 @@ namespace C7GameData {
 					if (ctzn.Type == 4) {  // Specialist
 						SaveCityResident scr = new();
 						scr.city = saveCity.id;
+						scr.tileWorked = new TileLocation();
 						scr.nationality = save.Civilizations[ctzn.Nationality].name;
 						scr.citizenType = save.CitizenTypes.Find(x => x.SpecialistIndex == ctzn.SpecialistType).Id;
 						saveCity.residents.Add(scr);
+					} else if (ctzn.Type == 3) {  // Resister
+						SaveCityResident scr = new();
+						scr.city = saveCity.id;
+						scr.tileWorked = new TileLocation();
+						scr.nationality = save.Civilizations[ctzn.Nationality].name;
+						scr.citizenType = save.CitizenTypes.Find(x => x.IsDefaultCitizen).Id;
+						scr.isResisting = true;
+						saveCity.residents.Add(scr);
 					} else if (ctzn.TileWorked == 0) {
-						// TODO: handle resistors
+						// Non-working non-specialists other than explicitly identified
+						// resisters remain unknown and are not inferred here.
 					} else {
 						SaveCityResident scr = new();
 						scr.city = saveCity.id;
@@ -1763,18 +1773,7 @@ namespace C7GameData {
 				TECH t = theBiq.Tech[i];
 				SaveTech st = save.Techs[i];
 
-				if (t.Prerequisite1 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite1].id);
-				}
-				if (t.Prerequisite2 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite2].id);
-				}
-				if (t.Prerequisite3 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite3].id);
-				}
-				if (t.Prerequisite4 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite3].id);
-				}
+				AddTechPrerequisites(t, st, save.Techs);
 			}
 
 			// Now that we have ids for all the techs, distribute the free techs
@@ -1807,6 +1806,21 @@ namespace C7GameData {
 					}
 					return false;
 				});
+			}
+		}
+
+		internal static void AddTechPrerequisites(TECH tech, SaveTech destination, IReadOnlyList<SaveTech> techs) {
+			int[] prerequisiteIndexes = {
+				tech.Prerequisite1,
+				tech.Prerequisite2,
+				tech.Prerequisite3,
+				tech.Prerequisite4,
+			};
+
+			foreach (int prerequisiteIndex in prerequisiteIndexes) {
+				if (prerequisiteIndex > -1) {
+					destination.Prerequisites.Add(techs[prerequisiteIndex].id);
+				}
 			}
 		}
 
