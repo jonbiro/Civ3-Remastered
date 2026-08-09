@@ -1,32 +1,28 @@
 # Known Civilization III compatibility gaps
 
-This file records concrete differences discovered while comparing the donor engine with the original Civilization III: Conquests data and documentation. It is intentionally evidence-based. Items should be removed only when covered by a regression test and corrected behavior.
+This file records concrete differences discovered while comparing the donor engine with the original Civilization III: Conquests data and documentation. It is intentionally evidence-based. Items should be removed when covered by a regression test and corrected behavior.
 
 Statuses use the definitions in `docs/COMPATIBILITY_PLAN.md`.
 
-## BUG: fourth technology prerequisite imports the third prerequisite
+## UNSUPPORTED: resistance quelling lifecycle is incomplete
 
-**Area:** BIQ import / technology tree
+**Area:** captured cities / resistance / happiness / culture
 
-`ImportCiv3.ImportTechs()` correctly checks whether `Prerequisite4` exists, but then adds `Prerequisite3` to the imported prerequisite set a second time. A ruleset or scenario using all four prerequisite slots can therefore lose its fourth prerequisite in the C7 model.
+Runtime and save-state residents now preserve whether a citizen is resisting, Civ III save import recognizes `CTZN.Type == 3` as a resister, mood calculations exclude resisters, and the normal settlement-size defensive bonus is suppressed while resistance remains.
 
-**Required fix:** change the fourth-prerequisite import to use `Prerequisite4`, then add a focused regression test using a synthetic four-prerequisite technology or a redistributable fixture.
+The remaining gap is the lifecycle that reduces and ends resistance. Civ III can quell resisters through military garrisoning and ending the war, and that behavior still needs deterministic implementation and fixtures.
 
-## UNSUPPORTED: city resistance is not represented in runtime residents
+**Required implementation:** model per-turn resistance quelling, including the relevant government/difficulty/culture modifiers, and add fixtures that begin with known resister counts and verify the original turn-by-turn outcomes.
 
-**Area:** captured cities / combat defense / happiness / culture
+## UNSUPPORTED: harbor and airport trade routes
 
-The original Conquests rules distinguish resisting citizens and explicitly suppress the normal city-size defensive bonus while a city has resisters. The current runtime `CityResident` model records citizen type, worked tile, nationality, city and mood, but no resistance state. `City.GetDefenseBonuses()` therefore always supplies the town/city/metropolis defense bonus based on population size.
+**Area:** trade network / resources / corruption
 
-**Required implementation:** represent resistance in runtime and save-state residents, import resistance from Civ III saves, and make city defense, labor, resistance-quelling and related systems consume the same state. Add a regression test proving that a city with at least one resister does not receive its normal city-size defensive bonus.
+Land trade now uses the actual capital, follows continuous road/rail segments, stops at wartime enemy territory, invalidates the cached network when war or peace changes, and feeds capital connectivity into distance corruption.
 
-## UNSUPPORTED: capital trade connectivity is ignored by corruption
+The original rules also connect cities through compatible harbor water routes and through airports. Water routes can be blocked by enemy naval forces and depend on the civilization's ability to traverse the relevant water tiles. Those paths are not yet represented by the trade-network flood fill.
 
-**Area:** corruption / trade network
-
-The original rules state that connection to the capital by road, harbor or airport reduces corruption and waste. The current distance-corruption calculation contains a placeholder `connectedTocapital = false`, so that factor is never applied.
-
-**Required implementation:** use the engine trade-network model to determine capital connectivity, invalidate/recompute it on relevant network changes, and cover connected/disconnected city cases with deterministic corruption fixtures.
+**Required implementation:** import the existing BIQ building flags for water and air trade, connect qualifying airport networks, implement technology-aware water-route traversal between harbors, account for naval blockades, and cover each route type with deterministic tests.
 
 ## Policy
 
