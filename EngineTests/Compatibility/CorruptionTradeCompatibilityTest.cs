@@ -8,7 +8,7 @@ namespace EngineTests.Compatibility;
 public class CorruptionTradeCompatibilityTest {
 	[Fact]
 	public void CapitalRoadConnectionReducesDistanceCorruption() {
-		GameData gameData = new() {
+		C7GameData.GameData gameData = new() {
 			gameDifficulty = new Difficulty { PercentageOfOptimalCities = 100 },
 			rules = new Rules { MaximumLevel1CitySize = 6, MaximumLevel2CitySize = 12 },
 		};
@@ -56,7 +56,7 @@ public class CorruptionTradeCompatibilityTest {
 		Assert.True(connectedCorruption < disconnectedCorruption);
 	}
 
-	private static Tile MakeTile(ID.Factory ids, GameData gameData, int x, int y) {
+	private static Tile MakeTile(ID.Factory ids, C7GameData.GameData gameData, int x, int y) {
 		TerrainType terrain = new() { Key = "plains", movementCost = 1 };
 		return new Tile(ids.CreateID("tile")) {
 			XCoordinate = x,
