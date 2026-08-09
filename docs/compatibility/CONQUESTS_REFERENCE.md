@@ -73,24 +73,36 @@ Terrain values currently covered:
 - Four experience levels: Conscript, Regular, Veteran, Elite.
 - Twenty-seven natural resources.
 
-## Source-derived contracts queued for behavioral tests
-
-The original data also documents the following rules. These should become engine-level behavior tests rather than parser-only assertions:
-
-- Golden Age duration is 20 turns.
-- Road movement costs one third of a movement point per tile.
-- Railroad movement costs zero movement points.
-- A fortress gives +50% defense and a barricade doubles that fortress bonus.
-- Cities connect for trade through road/rail, compatible harbor water routes, or airports.
-- Enemy territory can break a road/rail trade route and enemy naval units can blockade a harbor route.
-- Republic, Feudalism, and Democracy are subject to war weariness.
-- A single connected strategic or luxury resource supplies all connected cities in a civilization.
-
 ## Behavioral coverage implemented
 
-- Republic free-unit support is covered across the town/city/metropolis population boundaries and across mixed settlement sizes.
-- Hills, mountains, and fortification defense modifiers are covered by synthetic engine tests that run in public CI.
-- River crossing and city-size defense modifiers are the next combat contracts to add.
+The public-CI compatibility suite now covers both imported rule parameters and engine behavior for the first Classic-mode slices:
+
+- Republic free-unit support across town, city, and metropolis population boundaries and mixed settlement sizes.
+- Hills, mountains, fortification, and river-crossing defense modifiers.
+- Town, city, and metropolis defensive bonuses.
+- A resisting citizen suppresses the normal settlement-size defensive bonus.
+- Road movement costs one third of a movement point on a continuous road route.
+- Railroad movement costs zero movement points on a continuous rail route.
+- A broken road route falls back to the destination terrain movement cost.
+- Four technology prerequisite slots import independently, including the fourth slot.
+- Land trade uses the city marked as the actual capital rather than assuming the first city in a list is the capital.
+- Land trade crosses neutral or peaceful territory but stops at territory owned by a civilization currently at war with the player.
+- Declaring war and signing peace invalidate the cached trade network so route availability is recalculated.
+- A road connection to the capital reduces distance corruption compared with the equivalent disconnected city.
+- Resistance state survives native save conversion and is imported from Civ III save citizen records identified as resisters.
+
+## Source-derived contracts still queued
+
+The original data also documents the following behavior that is not yet fully covered or implemented:
+
+- Golden Age duration is 20 turns, with the associated production and commerce bonuses.
+- A fortress gives +50% defense and a barricade gives +100%; their direct terrain-improvement interaction still needs dedicated behavior tests.
+- Harbor water routes can connect cities when the civilization can safely traverse the relevant water tiles.
+- Enemy naval units can blockade harbor trade routes.
+- Airports can connect cities for trade.
+- Republic, Feudalism, and Democracy are subject to war weariness.
+- A single connected strategic or luxury resource supplies all connected cities in a civilization.
+- Captured-city resistance can be quelled and eventually ended; the exact turn-by-turn lifecycle still needs fixtures.
 
 ## Test policy
 
@@ -105,9 +117,9 @@ The original data also documents the following rules. These should become engine
 
 Continue the source-derived behavior work in this order:
 
-1. river crossing and city-size combat modifiers
-2. road and railroad movement
-3. trade-network connectivity and blockades
-4. difficulty/content-citizen behavior
-5. war weariness
-6. Golden Age duration and production/commerce bonuses
+1. harbor and airport trade routes, including naval blockade behavior
+2. resistance quelling lifecycle
+3. difficulty/content-citizen behavior beyond import parity
+4. war weariness
+5. Golden Age duration and production/commerce bonuses
+6. resource distribution across connected trade networks
