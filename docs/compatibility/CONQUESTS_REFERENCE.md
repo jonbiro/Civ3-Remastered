@@ -77,7 +77,7 @@ Terrain values currently covered:
 
 ## Behavioral coverage implemented
 
-The public-CI compatibility suite covers both imported rule parameters and engine behavior for the first Classic-mode slices:
+The public-CI compatibility suite covers both imported rule parameters and engine behavior for the first Classic-mode slices. Harbor/airport parser checks live in `ConquestsTradeReferenceTest.cs`, while public connector behavior is exercised by `TradeNetworkConnectorCompatibilityTest.cs`.
 
 - Republic free-unit support across town, city, and metropolis population boundaries and mixed settlement sizes.
 - Hills, mountains, fortification, and river-crossing defense modifiers.
