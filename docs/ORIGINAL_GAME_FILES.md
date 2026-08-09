@@ -39,6 +39,16 @@ export CIV3_HOME="/path/to/Sid Meier's Civilization III Complete"
 
 An invalid `CIV3_HOME` is ignored rather than overriding a valid auto-detected installation.
 
+## Local compatibility checks
+
+With `CIV3_HOME` set to a valid private installation, run:
+
+```bash
+dotnet test EngineTests/EngineTests.csproj --configuration Release
+```
+
+The opt-in compatibility smoke tests will parse the real `Conquests/conquests.biq` and decode representative original PCX data. Public CI skips private-file tests because the original game files are not part of the repository.
+
 ## Validation boundary
 
 A directory is accepted only when the remaster can locate all three of these essential files:
