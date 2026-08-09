@@ -1,0 +1,1 @@
+Temporary trigger for the compatibility patch workflow. The workflow removes the staged patch file after applying it.
