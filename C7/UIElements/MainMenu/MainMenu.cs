@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using C7Engine;
+using QueryCiv3;
 using Serilog;
 
 public partial class MainMenu : Node {
@@ -84,19 +85,7 @@ public partial class MainMenu : Node {
 	}
 
 	private bool ClassicGraphicsAvailable() {
-		if (string.IsNullOrEmpty(Util.Civ3Root)) {
-			return false;
-		}
-
-		string[] basePaths = ["Conquests", "civ3PTW", ""];
-		foreach (string basePath in basePaths) {
-			string relPath = string.IsNullOrEmpty(basePath) ? "Art/buttonsFINAL.pcx" : $"{basePath}/Art/buttonsFINAL.pcx";
-			if (Util.FileExistsIgnoringCase(Util.Civ3Root, relPath) != null) {
-				return true;
-			}
-		}
-
-		return false;
+		return Civ3InstallationProbe.TryOpen(Util.Civ3Root) != null;
 	}
 
 	private void SetToggleGraphicsText() {
@@ -162,8 +151,18 @@ public partial class MainMenu : Node {
 	}
 
 	private void _on_SetCiv3HomeDialog_dir_selected(string path) {
-		Util.Civ3Root = path;
-		C7Settings.SetValue("locations", "civ3InstallDir", path);
+		Civ3Installation installation = Civ3Location.FindCiv3Installation(path);
+		if (installation == null) {
+			log.Warning("Selected folder does not contain a complete Civilization III installation: {Path}", path);
+			NoCiv3Options.Visible = true;
+			ButtonContainer.Visible = false;
+			return;
+		}
+
+		// Store the actual install root even if the user selected a wrapper
+		// directory created by an archive extractor.
+		Util.Civ3Root = installation.RootPath;
+		C7Settings.SetValue("locations", "civ3InstallDir", installation.RootPath);
 		C7Settings.SaveSettings();
 		// This function should only be reachable if DisplayTitleScreen failed on previous runs, so should be OK to run here
 		DisplayTitleScreen();
