@@ -86,6 +86,12 @@ The original data also documents the following rules. These should become engine
 - Republic, Feudalism, and Democracy are subject to war weariness.
 - A single connected strategic or luxury resource supplies all connected cities in a civilization.
 
+## Behavioral coverage implemented
+
+- Republic free-unit support is covered across the town/city/metropolis population boundaries and across mixed settlement sizes.
+- Hills, mountains, and fortification defense modifiers are covered by synthetic engine tests that run in public CI.
+- River crossing and city-size defense modifiers are the next combat contracts to add.
+
 ## Test policy
 
 1. Original assets and text remain outside the repository.
@@ -97,12 +103,11 @@ The original data also documents the following rules. These should become engine
 
 ## Next implementation slice
 
-Turn the first source-derived facts into engine-level tests, in this order:
+Continue the source-derived behavior work in this order:
 
-1. government unit support
-2. terrain, river, fortification, and city combat modifiers
-3. road and railroad movement
-4. trade-network connectivity and blockades
-5. difficulty/content-citizen behavior
-6. war weariness
-7. Golden Age duration and production/commerce bonuses
+1. river crossing and city-size combat modifiers
+2. road and railroad movement
+3. trade-network connectivity and blockades
+4. difficulty/content-citizen behavior
+5. war weariness
+6. Golden Age duration and production/commerce bonuses
