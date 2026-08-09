@@ -34,7 +34,7 @@ jobs:
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 8.0.419
+          dotnet-version: 8.0.423
 
       - name: Show toolchain
         run: dotnet --info
