@@ -19,7 +19,7 @@ These hashes identify the exact local files used to establish the initial compat
 
 ## Initial machine-checkable contracts
 
-`EngineTests/Compatibility/ConquestsReferenceRulesTest.cs` verifies these directly against the locally installed `Conquests/conquests.biq`.
+`EngineTests/Compatibility/ConquestsReferenceRulesTest.cs` verifies these directly against a locally installed `Conquests/conquests.biq`.
 
 ### Difficulty levels and content citizens
 
@@ -58,6 +58,8 @@ Global/structural values covered by the BIQ parity test:
 - town: +50%
 - city: +50%
 - metropolis: +100%
+- Fortress: +50%
+- Barricade: +100%
 
 Terrain values covered:
 
@@ -83,6 +85,20 @@ The stock Conquests rules define six culture-ratio bands. Values are the chance 
 
 The BIQ also supplies an ordered government-versus-government resistance modifier matrix. The stock difficulty levels all use `MilitaryLaw = 1`, so each qualifying ground combat unit can quell at most one resister per turn under the default rules.
 
+### Golden Age contracts
+
+The original Civilopedia and BIQ establish the following Classic-mode behavior:
+
+- each civilization may experience only one Golden Age
+- the stock duration is 20 turns
+- a Golden-Age-triggering unique unit must win against another civilization; barbarian victories do not qualify
+- Great Wonders can collectively trigger a Golden Age once their traits cover all traits of the civilization
+- during the Golden Age, a worked tile that already produces at least one shield gains +1 production
+- a worked tile that already produces at least one commerce gains +1 commerce
+- food and zero-yield categories receive no Golden Age bonus
+
+The stock Panzer carries the Golden-Age-triggering unit flag; the stock Warrior does not.
+
 ### Other baseline facts
 
 - Four experience levels: Conscript, Regular, Veteran, Elite.
@@ -90,15 +106,13 @@ The BIQ also supplies an ordered government-versus-government resistance modifie
 - The stock Harbor carries the BIQ water-trade flag and the stock Airport carries the air-trade flag.
 - The stock technology tree contains rules that enable trade over sea and over ocean.
 - Republic and Feudalism have low war weariness; Democracy has high war weariness; Monarchy and the other stock non-representative governments have none.
-- The stock Golden Age duration is 20 turns.
 
 ## Behavioral coverage implemented
 
 The public-CI compatibility suite covers both imported rule parameters and engine behavior for the first Classic-mode slices.
 
 - Republic free-unit support across town, city, and metropolis population boundaries and mixed settlement sizes.
-- Hills, mountains, fortification, and river-crossing defense modifiers.
-- Town, city, and metropolis defensive bonuses.
+- Hills, mountains, fortification, river crossing, Fortress, Barricade, town, city, and metropolis defense modifiers.
 - A resisting citizen suppresses the normal settlement-size defensive bonus.
 - Road movement costs one third of a movement point on a continuous road route.
 - Railroad movement costs zero movement points on a continuous rail route.
@@ -120,14 +134,17 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 - The difficulty `MilitaryLaw` value multiplies the per-unit quelling cap.
 - Resisters consume no food and are removed before productive citizens when starvation reduces population.
 - Culture relationship levels and government resistance data survive native save round trips.
-- Government war-weariness levels and Golden Age duration are imported and available to the runtime for the next behavior slices.
+- Golden Age trigger/remaining state survives native saves and is imported from original Civ III save state.
+- Golden-Age-triggering unit victories against another civilization start the Golden Age; barbarian victories do not.
+- Player-built Great Wonder traits are accumulated across cities and trigger once they cover the civilization's traits.
+- Golden Ages last the imported duration, cannot repeat, and apply +1 production/+1 commerce only where the pre-bonus tile yield is positive.
+- A Golden-Age-triggering unit is not treated as obsolete before its civilization has experienced its Golden Age.
 
 ## Source-derived contracts still queued
 
 - Exact original resistance random-call ordering and mixed-nationality handling need original-game oracle fixtures.
 - War weariness needs persistent per-opponent event accounting, thresholds, aggressor/defender handling, and happiness integration.
-- Golden Ages need trigger bookkeeping, once-per-civilization enforcement, the 20-turn lifecycle, and production/commerce bonuses.
-- A fortress gives +50% defense and a barricade gives +100%; their direct terrain-improvement interaction still needs dedicated behavior tests.
+- Exact Golden Age first/last affected yield-cycle sequencing needs original-game save fixtures.
 - A single connected strategic or luxury resource supplies all connected cities in a civilization; broader end-to-end resource-distribution fixtures are still needed.
 
 ## Test policy
@@ -144,7 +161,6 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 Continue the source-derived behavior work in this order:
 
 1. war-weariness event accounting and mood effects
-2. Golden Age lifecycle and production/commerce bonuses
-3. fortress and barricade behavior tests
-4. end-to-end strategic/luxury resource distribution across connected trade networks
-5. original-save oracle fixtures for resistance random-call ordering
+2. end-to-end strategic/luxury resource distribution across connected trade networks
+3. original-save oracle fixtures for Golden Age sequencing
+4. original-save oracle fixtures for resistance random-call ordering
