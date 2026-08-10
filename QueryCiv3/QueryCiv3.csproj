@@ -4,10 +4,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="7.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" />
+    <PackageReference Include="Serilog" />
     <ProjectReference Include="..\Blast\Blast.csproj" />
-    <PackageReference Include="Serilog" Version="2.12.0" />
   </ItemGroup>
 
 </Project>

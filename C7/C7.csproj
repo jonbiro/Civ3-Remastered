@@ -1,4 +1,4 @@
-<Project Sdk="Godot.NET.Sdk/4.4.1">
+<Project Sdk="Godot.NET.Sdk/4.7.1">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -6,17 +6,13 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\ConvertCiv3Media\ConvertCiv3Media.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\QueryCiv3\QueryCiv3.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\C7Engine\C7Engine.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Serilog" Version="2.12.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
-    <PackageReference Include="Serilog.Expressions" Version="3.4.1" />
+    <PackageReference Include="Serilog" />
+    <PackageReference Include="Serilog.Sinks.Console" />
+    <PackageReference Include="Serilog.Sinks.File" />
+    <PackageReference Include="Serilog.Expressions" />
   </ItemGroup>
 </Project>
