@@ -4,15 +4,31 @@ This file records concrete differences discovered while comparing the donor engi
 
 Statuses use the definitions in `docs/COMPATIBILITY_PLAN.md`.
 
-## UNSUPPORTED: resistance quelling lifecycle is incomplete
+## UNKNOWN: exact resistance random-call ordering needs oracle fixtures
 
-**Area:** captured cities / resistance / happiness / culture
+**Area:** captured cities / resistance / deterministic compatibility
 
-Runtime and save-state residents preserve whether a citizen is resisting, Civ III save import recognizes `CTZN.Type == 3` as a resister, mood calculations exclude resisters, and the normal settlement-size defensive bonus is suppressed while resistance remains.
+The engine now imports the six stock culture-ratio bands, the ordered government-versus-government resistance modifiers, and each difficulty level's `MilitaryLaw` value. Per-turn resistance can end through peace or military garrisoning; only qualifying ground combat units count toward the garrison cap; resisters consume no food and are removed first by starvation.
 
-The remaining gap is the lifecycle that reduces and ends resistance. Civ III can quell resisters through military garrisoning and ending the war, and that behavior still needs deterministic implementation and fixtures.
+The remaining uncertainty is exact original-game random-call ordering when a city contains multiple resisters, especially if several nationalities are represented. The implemented order is deterministic and source-backed, but it has not yet been compared against a sequence of original-game save fixtures.
 
-**Required implementation:** model per-turn resistance quelling, including the relevant government/difficulty/culture modifiers, and add fixtures that begin with known resister counts and verify the original turn-by-turn outcomes.
+**Required verification:** capture Civ III saves immediately before resistance processing, record resulting resister counts across repeated deterministic scenarios, and compare the engine's per-citizen roll order and nationality handling.
+
+## UNSUPPORTED: war-weariness event accounting
+
+**Area:** diplomacy / war state / citizen happiness
+
+The stock BIQ government values are imported: Republic and Feudalism use low war weariness, Democracy uses high war weariness, and the remaining stock governments use none. The runtime does not yet track the original game's event-driven war-weariness points, thresholds, aggressor/defender distinctions, or per-opponent history.
+
+**Required implementation:** add persistent per-opponent war-weariness state, source-backed point events and thresholds, peace-time reset/decay behavior, and deterministic mood fixtures before applying unhappy citizens.
+
+## UNSUPPORTED: Golden Age lifecycle and yields
+
+**Area:** traits / combat / wonders / city yields
+
+The stock `GoldenAgeDuration` rule is imported and verified as 20 turns. Trigger state, once-per-civilization enforcement, unique-unit victory triggers, wonder-trait triggers, and the production/commerce tile bonuses remain unimplemented.
+
+**Required implementation:** add persistent Golden Age state and trigger bookkeeping, apply the original worked-tile yield bonuses, and cover start/end boundaries and save round trips.
 
 ## Policy
 
