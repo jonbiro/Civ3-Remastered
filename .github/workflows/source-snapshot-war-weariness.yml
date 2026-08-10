@@ -1,0 +1,30 @@
+name: Temporary war-weariness source snapshot
+
+on:
+  pull_request:
+    branches:
+      - agent/golden-age-compatibility
+    paths:
+      - .github/workflows/source-snapshot-war-weariness.yml
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    if: github.head_ref == 'agent/war-weariness-compatibility'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v6
+
+      - name: Archive source
+        run: git archive --format=tar.gz --output=civ3-war-weariness-source.tar.gz HEAD
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: civ3-war-weariness-source
+          path: civ3-war-weariness-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
