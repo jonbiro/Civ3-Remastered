@@ -649,6 +649,7 @@ namespace C7GameData {
 			foreach (QueryCiv3.Sav.LEAD leader in savData.Lead) {
 				List<int> contacts = leader.GetContact();
 				List<int> refuseContactForTurns = leader.GetRefuseContactForTurns();
+				List<int> warWearinessPoints = leader.GetWarWearinessPoints();
 				for (int j = 0; j < contacts.Count; ++j) {
 					if (contacts[j] > 0) {
 						QueryCiv3.Sav.LEAD_LEAD relationship = savData.ReputationRelationship[i][j];
@@ -661,6 +662,7 @@ namespace C7GameData {
 							refuseContactUntilTurn =
 								refuseContactForTurns[j] > 0 ?
 									save.TurnNumber + refuseContactForTurns[j] : -1,
+							warWearinessPoints = warWearinessPoints[j],
 						});
 					}
 				}
@@ -1625,6 +1627,8 @@ namespace C7GameData {
 				(bldg.TreasuryEarnsInterest, SaveBuilding.Flag.TreasuryEarnsInterest),
 				(bldg.AllowsWaterTrade, SaveBuilding.Flag.AllowsWaterTrade),
 				(bldg.AllowsAirTrade, SaveBuilding.Flag.AllowsAirTrade),
+				(bldg.ReducesWarWeariness, SaveBuilding.Flag.ReducesWarWeariness),
+				(bldg.ReducedWarWeariness, SaveBuilding.Flag.ReducesWarWearinessGlobally),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);

@@ -61,6 +61,8 @@ namespace C7Engine {
 				foreach (Player player in gameData.players) {
 					player.MaybeSpawnBonusUnits(gameData);
 					player.QuellResistance(gameData);
+					player.UpdateWarWearinessForTurn(gameData);
+					player.MaybeCollapseGovernmentFromWarWeariness(gameData);
 					player.RecalculateCitizenMoods(gameData, goIntoDisorderIfUnhappy: true);
 					player.DoCorruptionCalculations(gameData);
 

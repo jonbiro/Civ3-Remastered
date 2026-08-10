@@ -22,16 +22,20 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Golden Age triggers from cumulative player-built Great Wonder traits matching civilization traits
 - Golden Age +1 production/+1 commerce tile yields, zero-yield handling, imported duration, and end boundary
 - Golden-Age-triggering units remain available until the civilization has actually experienced its Golden Age
+- Per-opponent signed war-weariness state, native save persistence, and original Civ III SAV import
+- Reverse-engineered 31/61/91/121 point levels and peace-time decay toward zero
+- Defensive-war happiness, hostile-territory exposure, combat loss/attack, bombardment, improvement-loss, and city-loss event hooks
+- Low/high government mood effects, per-opponent rounding, Police Station mitigation, and Universal Suffrage mitigation
+- High-war-weariness government collapse into the normal anarchy transition
 
 ## Imported and available, but not yet behavior-complete
 
-- Government war-weariness level
 - Government assimilation chance
 
 ## Next behavior slices
 
-1. Per-opponent war-weariness event accounting and citizen mood effects
-2. End-to-end strategic/luxury resource distribution through the trade network
+1. End-to-end strategic/luxury resource distribution through the trade network
+2. Original-game oracle fixtures for war-weariness event ordering, AI asymmetries, and declaration causes
 3. Original-game save fixtures for exact Golden Age trigger-cycle timing
 4. Original-game save fixtures for exact resistance random-call ordering
 

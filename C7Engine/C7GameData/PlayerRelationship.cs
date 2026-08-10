@@ -42,6 +42,24 @@ public class PlayerRelationship {
 
 	public bool declaredWarWithActiveRightOfPassage = false;
 
+	// Civilization III stores a signed war-weariness balance for each
+	// ordered player relationship. Negative values provide temporary war
+	// happiness while at war; positive values cross the 31/61/91/121
+	// thresholds. The balance persists during peace and decays toward zero.
+	public int warWearinessPoints = 0;
+
+	public int WarWearinessLevel() {
+		return WarWearinessRules.LevelForPoints(warWearinessPoints);
+	}
+
+	public void AddWarWeariness(int points) {
+		warWearinessPoints += points;
+	}
+
+	public void DecayWarWearinessAtPeace() {
+		warWearinessPoints = WarWearinessRules.DecayTowardZeroAtPeace(warWearinessPoints);
+	}
+
 	public bool AtWar() {
 		return multiTurnDeals.Count == 0;
 	}
@@ -130,6 +148,10 @@ public class PlayerRelationship {
 		// Finally clear all multi-turn deals, including Peace, which is how we actually declare war
 		aggressorRelationshipToDefender.multiTurnDeals = new List<MultiTurnDeal>();
 		defenderRelationshipToAggressor.multiTurnDeals = new List<MultiTurnDeal>();
+
+		// A civilization that is directly attacked begins with the stock
+		// defensive-war happiness offset. Existing history is not discarded.
+		defenderRelationshipToAggressor.AddWarWeariness(WarWearinessRules.DefensiveWarHappiness);
 
 		log.Information($"{aggressor} declared war on {defender}{(sneakAttack ? $" in a sneak attack" : "")}!" +
 						$" Defender is refusing contact for at least up to turn {refuseContactUntilTurn}" +

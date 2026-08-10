@@ -139,6 +139,7 @@ namespace C7GameData {
 				await RunAnimatedBombard(tile, attackerOdds, () => {
 					hitCount += 1;
 					tile.cityAtTile.RemoveBuilding(walls);
+					tile.cityAtTile.owner.AddWarWearinessAgainst(owner, WarWearinessRules.LostImprovement);
 				});
 			}
 
@@ -160,6 +161,7 @@ namespace C7GameData {
 
 			var tries = 0;
 			var hitCount = 0;
+			int startingHitPoints = target.hitPointsRemaining;
 
 			while (tries < unitType.rateOfFire) {
 				tries++;
@@ -182,6 +184,10 @@ namespace C7GameData {
 
 			} else
 				await tile.AnimateAsync(tile.IsWater() ? AnimatedEffect.WaterMiss : AnimatedEffect.Miss);
+
+			if (startingHitPoints > 1 && target.hitPointsRemaining == 1) {
+				target.owner.AddWarWearinessAgainst(owner, WarWearinessRules.BombardedToOneHitPoint);
+			}
 
 			if (target.hitPointsRemaining <= 0) {
 				RollToPromote(target);
@@ -215,6 +221,7 @@ namespace C7GameData {
 					var building = eligibleBuildingsForBombardment
 						.OrderBy(x => GameData.rng.Next()).First();
 					tile.cityAtTile.RemoveBuilding(building);
+					tile.cityAtTile.owner.AddWarWearinessAgainst(owner, WarWearinessRules.LostImprovement);
 					destroyMsg = $"The {building.building.name} of {tile.cityAtTile.name} has been destroyed!";
 				}
 			: () =>
@@ -247,6 +254,7 @@ namespace C7GameData {
 			const int tileImprovementDefence = 3;
 
 			var hitCount = 0;
+			Player improvementOwner = tile.OwningPlayer();
 
 			var improvement = tile.overlays.GetManMadeImprovements()
 				.OrderBy(x => GameData.rng.Next()).FirstOrDefault();
@@ -264,6 +272,7 @@ namespace C7GameData {
 				tile.overlays.Remove(improvement);
 				// "Replace" with downgraded improvement if it exists
 				tile.overlays.Add(improvement?.upgradesFrom);
+				improvementOwner?.AddWarWearinessAgainst(owner, WarWearinessRules.LostImprovement);
 				// TODO: Re-target?
 			});
 

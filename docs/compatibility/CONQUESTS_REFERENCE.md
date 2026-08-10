@@ -99,6 +99,21 @@ The original Civilopedia and BIQ establish the following Classic-mode behavior:
 
 The stock Panzer carries the Golden-Age-triggering unit flag; the stock Warrior does not.
 
+### War-weariness contracts
+
+The original Civilopedia and BIQ establish which governments are affected, that offensive/foreign wars are less tolerable, that peace removes the active citizen effect, and that Police Stations and Universal Suffrage mitigate it. The following hidden point mechanics come from long-running community save-file experimentation and are therefore tracked as reverse-engineered contracts rather than official documentation:
+
+- one signed point total is stored independently for each opponent
+- negative points provide 25% war happiness while that war is active
+- 0-30 points have no effect; levels begin at 31, 61, 91, and 121 points
+- Low weariness produces 25%, 50%, 50%, and 100% unhappy laborers at levels 1-4
+- High weariness produces 50% and 100% unhappy laborers at levels 1-2 and government collapse at level 3
+- each opponent's citizen contribution is rounded down independently before totals are added
+- a Police Station removes a 25%-of-city contribution from the aggregate unhappy result; Universal Suffrage removes one more unhappy citizen
+- peace retains the signed history but moves it toward zero by `ceil(abs(points) / 20)` each turn
+
+The event values represented by the compatibility engine are -30 for a qualifying direct defensive war; +1 for a turn spent in enemy territory, a non-defending-unit loss, an improvement loss, or bombardment to one hit point; +2 for a lost attacking unit or a defending combat unit being attacked; and +16/+17 for losing a size-one/larger city. Exact original AI asymmetries and declaration-cause exceptions remain oracle work.
+
 ### Other baseline facts
 
 - Four experience levels: Conscript, Regular, Veteran, Elite.
@@ -139,11 +154,15 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 - Player-built Great Wonder traits are accumulated across cities and trigger once they cover the civilization's traits.
 - Golden Ages last the imported duration, cannot repeat, and apply +1 production/+1 commerce only where the pre-bonus tile yield is positive.
 - A Golden-Age-triggering unit is not treated as obsolete before its civilization has experienced its Golden Age.
+- War-weariness history is stored per opponent, survives native saves, and imports from the original SAV relationship array.
+- Defensive-war happiness, point thresholds, peace decay, hostile-territory exposure, combat/city/bombardment events, and representative-government mood effects are covered by deterministic tests.
+- Each opponent's mood contribution rounds down independently; Police Stations and Universal Suffrage mitigate the aggregate result.
+- High-war-weariness governments enter the normal anarchy transition at level three.
 
 ## Source-derived contracts still queued
 
 - Exact original resistance random-call ordering and mixed-nationality handling need original-game oracle fixtures.
-- War weariness needs persistent per-opponent event accounting, thresholds, aggressor/defender handling, and happiness integration.
+- Exact war-weariness declaration-cause exceptions, AI/human asymmetries, event ordering, pillage, and field capture behavior need original-game oracle fixtures.
 - Exact Golden Age first/last affected yield-cycle sequencing needs original-game save fixtures.
 - A single connected strategic or luxury resource supplies all connected cities in a civilization; broader end-to-end resource-distribution fixtures are still needed.
 
@@ -160,7 +179,7 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 
 Continue the source-derived behavior work in this order:
 
-1. war-weariness event accounting and mood effects
-2. end-to-end strategic/luxury resource distribution across connected trade networks
+1. end-to-end strategic/luxury resource distribution across connected trade networks
+2. original-save oracle fixtures for war-weariness event ordering and declaration causes
 3. original-save oracle fixtures for Golden Age sequencing
 4. original-save oracle fixtures for resistance random-call ordering
