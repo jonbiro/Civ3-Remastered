@@ -1,0 +1,37 @@
+name: Temporary war-weariness compatibility patch
+
+on:
+  push:
+    branches:
+      - agent/war-weariness-implementation
+    paths:
+      - .github/workflows/temporary-war-weariness-patch.yml
+      - scripts/war-weariness.patch.gz.part*
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout implementation branch
+        uses: actions/checkout@v6
+        with:
+          ref: agent/war-weariness-implementation
+          fetch-depth: 0
+
+      - name: Apply verified war-weariness patch
+        run: |
+          cat scripts/war-weariness.patch.gz.part* | tr -d '\r\n' | base64 --decode > /tmp/war-weariness.patch.gz
+          echo "34abdb3a1bede10c7371648c6e84f164ab4346d347c0a26e0a1ee856afe3c9ca  /tmp/war-weariness.patch.gz" | sha256sum --check
+          gzip --decompress --stdout /tmp/war-weariness.patch.gz > /tmp/war-weariness.patch
+          echo "fc3eff4a0be9d770e7a3baf74c4536d0b757382327a4fcab777bcc675bb204bc  /tmp/war-weariness.patch" | sha256sum --check
+          git apply --check /tmp/war-weariness.patch
+          git apply /tmp/war-weariness.patch
+          git rm scripts/war-weariness.patch.gz.part* .github/workflows/temporary-war-weariness-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement Civilization III war weariness compatibility"
+          git push origin HEAD:agent/war-weariness-implementation
