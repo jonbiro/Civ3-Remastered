@@ -51,7 +51,7 @@ Values are free units per town / city / metropolis.
 
 ### Defensive bonuses
 
-Global/structural values currently covered by the BIQ parity test:
+Global/structural values covered by the BIQ parity test:
 
 - fortified unit: +25%
 - across a river: +25%
@@ -59,7 +59,7 @@ Global/structural values currently covered by the BIQ parity test:
 - city: +50%
 - metropolis: +100%
 
-Terrain values currently covered:
+Terrain values covered:
 
 - desert, plains, grassland, tundra, flood plain, coast, sea, ocean: +10%
 - marsh: +20%
@@ -68,16 +68,33 @@ Terrain values currently covered:
 - volcano: +80%
 - mountains: +100%
 
+### Resistance contracts
+
+The stock Conquests rules define six culture-ratio bands. Values are the chance that a foreign citizen initially resists / continues resisting on a later turn.
+
+| Culture relationship | Ratio threshold | Initial | Continued |
+| --- | ---: | ---: | ---: |
+| in awe of | 300% | 40% | 30% |
+| admirers of | 200% | 50% | 40% |
+| impressed with | 100% | 60% | 50% |
+| unimpressed by | 75% | 70% | 60% |
+| dismissive of | 50% | 80% | 70% |
+| disdainful of | 33% | 90% | 80% |
+
+The BIQ also supplies an ordered government-versus-government resistance modifier matrix. The stock difficulty levels all use `MilitaryLaw = 1`, so each qualifying ground combat unit can quell at most one resister per turn under the default rules.
+
 ### Other baseline facts
 
 - Four experience levels: Conscript, Regular, Veteran, Elite.
 - Twenty-seven natural resources.
 - The stock Harbor carries the BIQ water-trade flag and the stock Airport carries the air-trade flag.
 - The stock technology tree contains rules that enable trade over sea and over ocean.
+- Republic and Feudalism have low war weariness; Democracy has high war weariness; Monarchy and the other stock non-representative governments have none.
+- The stock Golden Age duration is 20 turns.
 
 ## Behavioral coverage implemented
 
-The public-CI compatibility suite covers both imported rule parameters and engine behavior for the first Classic-mode slices. Harbor/airport parser checks live in `ConquestsTradeReferenceTest.cs`, while public connector behavior is exercised by `TradeNetworkConnectorCompatibilityTest.cs`. Both files are committed to the compatibility branch and are part of the normal EngineTests build.
+The public-CI compatibility suite covers both imported rule parameters and engine behavior for the first Classic-mode slices.
 
 - Republic free-unit support across town, city, and metropolis population boundaries and mixed settlement sizes.
 - Hills, mountains, fortification, and river-crossing defense modifiers.
@@ -97,16 +114,21 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 - Enemy naval units at war block water-trade paths; moving or removing naval units invalidates the cached network so blockades update.
 - Airports merge otherwise disconnected city trade segments.
 - Building and technology changes that create new water/air trade capabilities invalidate the cached trade network.
+- Per-turn resistance uses the imported culture band and ordered government-pair modifier.
+- Peace with the resister's mother country ends resistance without requiring a garrison.
+- Only qualifying ground combat units count toward the per-turn garrison cap; sea, air, artillery-only, worker, and settler units do not.
+- The difficulty `MilitaryLaw` value multiplies the per-unit quelling cap.
+- Resisters consume no food and are removed before productive citizens when starvation reduces population.
+- Culture relationship levels and government resistance data survive native save round trips.
+- Government war-weariness levels and Golden Age duration are imported and available to the runtime for the next behavior slices.
 
 ## Source-derived contracts still queued
 
-The original data also documents behavior that is not yet fully covered or implemented:
-
-- Golden Age duration is 20 turns, with the associated production and commerce bonuses.
+- Exact original resistance random-call ordering and mixed-nationality handling need original-game oracle fixtures.
+- War weariness needs persistent per-opponent event accounting, thresholds, aggressor/defender handling, and happiness integration.
+- Golden Ages need trigger bookkeeping, once-per-civilization enforcement, the 20-turn lifecycle, and production/commerce bonuses.
 - A fortress gives +50% defense and a barricade gives +100%; their direct terrain-improvement interaction still needs dedicated behavior tests.
-- Republic, Feudalism, and Democracy are subject to war weariness.
 - A single connected strategic or luxury resource supplies all connected cities in a civilization; broader end-to-end resource-distribution fixtures are still needed.
-- Captured-city resistance can be quelled and eventually ended; the exact turn-by-turn lifecycle still needs fixtures.
 
 ## Test policy
 
@@ -121,8 +143,8 @@ The original data also documents behavior that is not yet fully covered or imple
 
 Continue the source-derived behavior work in this order:
 
-1. resistance quelling lifecycle
-2. difficulty/content-citizen behavior beyond import parity
-3. war weariness
-4. Golden Age duration and production/commerce bonuses
-5. end-to-end strategic/luxury resource distribution across connected trade networks
+1. war-weariness event accounting and mood effects
+2. Golden Age lifecycle and production/commerce bonuses
+3. fortress and barricade behavior tests
+4. end-to-end strategic/luxury resource distribution across connected trade networks
+5. original-save oracle fixtures for resistance random-call ordering
