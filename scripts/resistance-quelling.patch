@@ -1,0 +1,725 @@
+diff --git a/.github/workflows/source-snapshot-current.yml b/.github/workflows/source-snapshot-current.yml
+deleted file mode 100644
+index 1e1c0ee..0000000
+--- a/.github/workflows/source-snapshot-current.yml
++++ /dev/null
+@@ -1,27 +0,0 @@
+-name: Temporary current source snapshot
+-
+-on:
+-  pull_request:
+-    branches:
+-      - agent/civ3-install-integration
+-
+-permissions:
+-  contents: read
+-
+-jobs:
+-  snapshot:
+-    runs-on: ubuntu-24.04
+-    steps:
+-      - name: Checkout pull request head
+-        uses: actions/checkout@v6
+-
+-      - name: Archive source
+-        run: git archive --format=tar.gz --output=civ3-remastered-current.tar.gz HEAD
+-
+-      - name: Upload source snapshot
+-        uses: actions/upload-artifact@v4
+-        with:
+-          name: civ3-remastered-current
+-          path: civ3-remastered-current.tar.gz
+-          if-no-files-found: error
+-          retention-days: 1
+diff --git a/C7Engine/C7GameData/City.cs b/C7Engine/C7GameData/City.cs
+index b724afd..b5bb693 100644
+--- a/C7Engine/C7GameData/City.cs
++++ b/C7Engine/C7GameData/City.cs
+@@ -359,7 +359,9 @@ namespace C7GameData {
+ 
+ 			// Handle the city starving.
+ 			if (foodStored < 0) {
+-				RemoveLastCitizen();
++				// Civilization III removes resisters before productive citizens
++				// when starvation reduces a captured city's population.
++				RemoveCitizenForStarvation();
+ 				foodStored = 0;
+ 				return;
+ 			}
+@@ -628,8 +630,9 @@ namespace C7GameData {
+ 		}
+ 
+ 		public int FoodConsumedPerTurn() {
+-			// TODO: exclude resisters in the future.
+-			return residents.Count * 2;
++			// Civ III resisters refuse to work but also consume no food while
++			// resistance continues.
++			return residents.Count(resident => !resident.isResisting) * 2;
+ 		}
+ 
+ 
+@@ -637,6 +640,11 @@ namespace C7GameData {
+ 			RemoveCitizenAt(residents.Count - 1);
+ 		}
+ 
++		private void RemoveCitizenForStarvation() {
++			int resisterIndex = residents.FindLastIndex(resident => resident.isResisting);
++			RemoveCitizenAt(resisterIndex >= 0 ? resisterIndex : residents.Count - 1);
++		}
++
+ 		public void RemoveRandomCitizen() {
+ 			if (residents.Count == 1)
+ 				return; // TODO: Handle extreme case
+@@ -851,6 +859,70 @@ namespace C7GameData {
+ 			corruption = Math.Min(corruption, maxCorruption);
+ 		}
+ 
++		private Player PlayerForNationality(GameData gameData, Civilization nationality) {
++			return gameData.players.FirstOrDefault(player => player.civilization == nationality);
++		}
++
++		private void EndResistance(GameData gameData, CityResident resident) {
++			resident.isResisting = false;
++
++			// Resisters imported from Civ III saves are not assigned to a tile.
++			// Once resistance ends, let the normal city governor put the citizen
++			// back to work or convert them to a specialist if no tile is free.
++			if (resident.citizenType.IsDefaultCitizen && resident.tileWorked == Tile.NONE) {
++				C7Engine.AI.CityTileAssignmentAI.AssignNewCitizenToTile(gameData, resident);
++			}
++		}
++
++		/// <summary>
++		/// Performs Civilization III's per-turn resistance continuation check.
++		/// Peace with a resister's mother country ends that citizen's
++		/// resistance. During war, each resister rolls against the imported
++		/// culture/government chance, with the number that may be quelled capped
++		/// by qualifying ground combat units and the difficulty's MilitaryLaw.
++		/// </summary>
++		/// <returns>The number of citizens whose resistance ended.</returns>
++		public int QuellResistance(GameData gameData) {
++			List<CityResident> resisters = residents.Where(resident => resident.isResisting).ToList();
++			if (resisters.Count == 0) {
++				return 0;
++			}
++
++			int quelled = 0;
++			List<(CityResident resident, Player sourcePlayer)> wartimeResisters = new();
++			foreach (CityResident resident in resisters) {
++				Player sourcePlayer = PlayerForNationality(gameData, resident.nationality);
++				if (sourcePlayer != null && owner.IsAtPeaceWith(sourcePlayer)) {
++					EndResistance(gameData, resident);
++					++quelled;
++				} else {
++					wartimeResisters.Add((resident, sourcePlayer));
++				}
++			}
++
++			int militaryQuellLimit = ResistanceRules.MaximumQuelledByGarrison(gameData, this);
++			int quelledByMilitary = 0;
++			foreach ((CityResident resident, Player sourcePlayer) in wartimeResisters) {
++				if (quelledByMilitary >= militaryQuellLimit) {
++					break;
++				}
++
++				int continuedResistanceChance = ResistanceRules.ResistanceChance(
++					gameData,
++					owner,
++					sourcePlayer,
++					continuedResistance: true
++				);
++				if (GameData.rng.Next(100) >= continuedResistanceChance) {
++					EndResistance(gameData, resident);
++					++quelledByMilitary;
++					++quelled;
++				}
++			}
++
++			return quelled;
++		}
++
+ 		// Does the per turn culture updating for the city and returns whether
+ 		// the borders need to be updated.
+ 		public bool UpdateCultureAndCheckForExpansion() {
+diff --git a/C7Engine/C7GameData/GameData.cs b/C7Engine/C7GameData/GameData.cs
+index fbf1c5e..50935f2 100644
+--- a/C7Engine/C7GameData/GameData.cs
++++ b/C7Engine/C7GameData/GameData.cs
+@@ -30,6 +30,7 @@ namespace C7GameData {
+ 
+ 		internal List<Civilization> civilizations = new List<Civilization>();
+ 		internal HashSet<CultureGroup> cultureGroups = new HashSet<CultureGroup>();
++		public List<CultureRelationshipLevel> cultureRelationshipLevels = new();
+ 		internal HashSet<Alliance> alliances;
+ 		internal Dictionary<Alliance, Alliance> allianceWars = new Dictionary<Alliance, Alliance>();
+ 
+diff --git a/C7Engine/C7GameData/Government.cs b/C7Engine/C7GameData/Government.cs
+index 871cd74..c56cc3b 100644
+--- a/C7Engine/C7GameData/Government.cs
++++ b/C7Engine/C7GameData/Government.cs
+@@ -1,4 +1,5 @@
+ using System;
++using System.Collections.Generic;
+ using System.Text.Json.Serialization;
+ 
+ namespace C7GameData {
+@@ -82,6 +83,31 @@ namespace C7GameData {
+ 		public int freeUnitsPerMetropolis;
+ 		public int unitCost;
+ 
++		// Percentage chance per turn that a foreign citizen assimilates into
++		// this government's civilization.
++		public int assimilationChance;
++
++		public enum WarWearinessLevel {
++			None,
++			Low,
++			High,
++		}
++		public WarWearinessLevel warWeariness;
++
++		// The Civ III editor stores a resistance modifier for every ordered
++		// pair of governments. The key is the government of the civilization
++		// whose citizen is resisting; this Government is the conqueror.
++		public Dictionary<string, int> resistanceModifierByForeignGovernment = new();
++
++		public int ResistanceModifierAgainst(Government foreignGovernment) {
++			if (foreignGovernment == null) {
++				return 0;
++			}
++			return resistanceModifierByForeignGovernment.TryGetValue(foreignGovernment.name, out int modifier)
++				? modifier
++				: 0;
++		}
++
+ 		private static void TradeBonus(Tile.Yield yield) {
+ 			if (yield.type == Tile.YieldType.Commerce && yield.baseYield > 0) {
+ 				yield.bonus += 1;
+diff --git a/C7Engine/C7GameData/ImportCiv3.cs b/C7Engine/C7GameData/ImportCiv3.cs
+index 689bd1a..b697def 100644
+--- a/C7Engine/C7GameData/ImportCiv3.cs
++++ b/C7Engine/C7GameData/ImportCiv3.cs
+@@ -64,6 +64,7 @@ namespace C7GameData {
+ 			ImportTimeScale();
+ 			ImportRaces();
+ 			ImportCultureGroups();
++			ImportCultureRelationshipLevels();
+ 			ImportTechs();
+ 			ImportCiv3Resources();
+ 			ImportTerraforms();
+@@ -430,6 +431,22 @@ namespace C7GameData {
+ 			}
+ 		}
+ 
++		private void ImportCultureRelationshipLevels() {
++			BiqData theBiq = biq.Cult is null ? defaultBiq : biq;
++			foreach (CULT culture in theBiq.Cult) {
++				save.CultureRelationshipLevels.Add(new CultureRelationshipLevel {
++					name = culture.Name,
++					cultureRatioPercentage = culture.CultureRatioPercentage,
++					cultureRatioDenominator = culture.CultureRatioDenominator,
++					cultureRatioNumerator = culture.CultureRatioNumerator,
++					initialResistanceChance = culture.InitialResistanceChance,
++					continuedResistanceChance = culture.ContinuedResistanceChance,
++				});
++			}
++		}
++
+ 		private void ImportCultureGroups() {
+ 			BiqData theBiq = biq.Race is null ? defaultBiq : biq;
+ 			HashSet<CultureGroup> cultureGroups = new HashSet<CultureGroup>();
+@@ -1977,9 +1994,23 @@ namespace C7GameData {
+ 				g.freeUnitsPerCity = govt.FreeUnitsPerCity;
+ 				g.freeUnitsPerMetropolis = govt.FreeUnitsPerMetropolis;
+ 				g.unitCost = govt.UnitCost;
++				g.assimilationChance = govt.AssimilationChance;
++				g.warWeariness = (Government.WarWearinessLevel)govt.WarWeariness;
+ 
+ 				save.Governments.Add(g);
+ 			}
++
++			// The rectangular BIQ matrix is indexed by the conqueror's
++			// government first and the resisting civilization's government
++			// second. Keep names as stable serialized keys.
++			if (theBiq.GovtGovt != null) {
++				for (int conquerorIndex = 0; conquerorIndex < save.Governments.Count; ++conquerorIndex) {
++					Government conqueror = save.Governments[conquerorIndex];
++					for (int foreignIndex = 0; foreignIndex < save.Governments.Count; ++foreignIndex) {
++						conqueror.resistanceModifierByForeignGovernment[save.Governments[foreignIndex].name]
++							= theBiq.GovtGovt[conquerorIndex, foreignIndex].ResistanceModifier;
++					}
++				}
++			}
+ 		}
+ 
+ 		private void ImportDifficulties() {
+@@ -2026,6 +2057,7 @@ namespace C7GameData {
+ 			save.Rules.CitizenValueInShields = rule.CitizenValueInShields;
+ 			save.Rules.TurnPenaltyForEachHurrySacrifice = rule.TurnPenaltyForEachHurrySacrifice;
++			save.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
+ 			save.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
+ 			if (rule.StartUnitType1 >= 0) {
+ 				save.Rules.StartUnitType1 = theBiq.Prto[rule.StartUnitType1].Name;
+diff --git a/C7Engine/C7GameData/Player.cs b/C7Engine/C7GameData/Player.cs
+index 57634a8..c940ae8 100644
+--- a/C7Engine/C7GameData/Player.cs
++++ b/C7Engine/C7GameData/Player.cs
+@@ -799,6 +799,10 @@ namespace C7GameData {
+ 			gold += lastGoldPerTurn;
+ 		}
+ 
++		public int QuellResistance(GameData gameData) {
++			return cities.Sum(city => city.QuellResistance(gameData));
++		}
++
+ 		public void HandleCityUpdates(GameData gameData) {
+ 			foreach (City c in cities) {
+ 				// Ensure borders expand before we assign the new citizen, so that
+diff --git a/C7Engine/C7GameData/ResistanceRules.cs b/C7Engine/C7GameData/ResistanceRules.cs
+new file mode 100644
+index 0000000..68fd302
+--- /dev/null
++++ b/C7Engine/C7GameData/ResistanceRules.cs
+@@ -0,0 +1,102 @@
++using System;
++using System.Collections.Generic;
++using System.Linq;
++
++namespace C7GameData;
++
++/// <summary>
++/// One Civilization III culture-comparison band used by resistance,
++/// propaganda, and related captured-city calculations.
++/// </summary>
++public class CultureRelationshipLevel {
++	public string name;
++	public int cultureRatioPercentage;
++	public int cultureRatioDenominator;
++	public int cultureRatioNumerator;
++	public int initialResistanceChance;
++	public int continuedResistanceChance;
++}
++
++/// <summary>
++/// Civilization III resistance calculations that are shared by city capture
++/// and the per-turn resistance-quelling lifecycle.
++/// </summary>
++public static class ResistanceRules {
++	public static int TotalCulture(GameData gameData, Player player) {
++		if (player == null) {
++			return 0;
++		}
++
++		int result = 0;
++		foreach (City city in gameData.cities) {
++			if (city.perPlayerCulture.TryGetValue(player, out int culture)) {
++				result += culture;
++			}
++		}
++		return result;
++	}
++
++	public static CultureRelationshipLevel GetCultureRelationship(
++		GameData gameData,
++		Player conqueror,
++		Player conquered
++	) {
++		if (gameData.cultureRelationshipLevels.Count == 0) {
++			return null;
++		}
++
++		long conquerorCulture = TotalCulture(gameData, conqueror);
++		long conqueredCulture = TotalCulture(gameData, conquered);
++
++		// Equal zero-culture civilizations are treated as culturally equal.
++		if (conquerorCulture == 0 && conqueredCulture == 0) {
++			return gameData.cultureRelationshipLevels
++				.OrderBy(level => Math.Abs(level.cultureRatioPercentage - 100))
++				.First();
++		}
++
++		// The BIQ levels are expressed as the conqueror's culture divided by
++		// the conquered civilization's culture. Evaluate the ratio with integer
++		// cross multiplication so large culture totals do not lose precision.
++		foreach (CultureRelationshipLevel level in gameData.cultureRelationshipLevels
++				.OrderByDescending(level => (double)level.cultureRatioNumerator / Math.Max(1, level.cultureRatioDenominator))) {
++			if (conquerorCulture * level.cultureRatioDenominator
++					>= conqueredCulture * level.cultureRatioNumerator) {
++				return level;
++			}
++		}
++
++		return gameData.cultureRelationshipLevels
++			.OrderBy(level => (double)level.cultureRatioNumerator / Math.Max(1, level.cultureRatioDenominator))
++			.First();
++	}
++
++	public static int ResistanceChance(
++		GameData gameData,
++		Player conqueror,
++		Player conquered,
++		bool continuedResistance
++	) {
++		CultureRelationshipLevel relationship = GetCultureRelationship(gameData, conqueror, conquered);
++		if (relationship == null) {
++			// Preserve resistance rather than silently erasing it when a legacy
++			// save or non-Civ3 ruleset has no resistance data.
++			return 100;
++		}
++
++		int baseChance = continuedResistance
++			? relationship.continuedResistanceChance
++			: relationship.initialResistanceChance;
++		int governmentModifier = conqueror?.government?.ResistanceModifierAgainst(conquered?.government) ?? 0;
++		return Math.Clamp(baseChance + governmentModifier, 0, 100);
++	}
++
++	public static int MaximumQuelledByGarrison(GameData gameData, City city) {
++		int qualifyingUnits = city.location.unitsOnTile.Count(unit =>
++			unit.owner == city.owner
++			&& unit.IsLandUnit()
++			&& unit.unitType.attack > 0
++			&& unit.unitType.defense > 0);
++		return qualifyingUnits * Math.Max(0, gameData.gameDifficulty.MilitaryLaw);
++	}
++}
+diff --git a/C7Engine/C7GameData/Rules.cs b/C7Engine/C7GameData/Rules.cs
+index 485e449..c1dc754 100644
+--- a/C7Engine/C7GameData/Rules.cs
++++ b/C7Engine/C7GameData/Rules.cs
+@@ -6,6 +6,7 @@ namespace C7GameData {
+ 		public int ForestValueInShields;
+ 		public int CitizenValueInShields;
+ 		public int TurnPenaltyForEachHurrySacrifice;
++		public int GoldenAgeDuration;
+ 		public int MaximumLevel1CitySize;
+ 		public int MaximumLevel2CitySize;
+ 		public int FoodNeededToGrowForLevel1Cities = 20;
+diff --git a/C7Engine/C7GameData/Save/SaveGame.cs b/C7Engine/C7GameData/Save/SaveGame.cs
+index 8b0a2a5..7b3aada 100644
+--- a/C7Engine/C7GameData/Save/SaveGame.cs
++++ b/C7Engine/C7GameData/Save/SaveGame.cs
+@@ -57,6 +57,7 @@ namespace C7GameData.Save {
+ 				TurnNumber = data.turn,
+ 				Civilizations = data.civilizations,
+ 				CultureGroups = data.cultureGroups,
++				CultureRelationshipLevels = data.cultureRelationshipLevels,
+ 				Alliances = data.alliances,
+ 				Map = new SaveMap(data.map),
+ 				TerrainTypes = data.terrainTypes,
+@@ -213,6 +214,7 @@ namespace C7GameData.Save {
+ 				scenarioSearchPath = ScenarioSearchPath,
+ 				civilizations = Civilizations,
+ 				cultureGroups = CultureGroups,
++				cultureRelationshipLevels = CultureRelationshipLevels,
+ 				alliances = Alliances,
+ 				citizenTypes = CitizenTypes,
+ 				governments = Governments,
+@@ -438,6 +440,7 @@ namespace C7GameData.Save {
+ 		public List<Civilization> Civilizations = new List<Civilization>();
+ 		public HashSet<CultureGroup> CultureGroups = new HashSet<CultureGroup>();
++		public List<CultureRelationshipLevel> CultureRelationshipLevels = new();
+ 		public HashSet<Alliance> Alliances = new HashSet<Alliance>();
+ 		public Dictionary<string, string> AllianceWars = new Dictionary<string, string>();
+ 		public List<StrengthBonus> StrengthBonuses = new List<StrengthBonus>();
+diff --git a/C7Engine/EntryPoints/TurnHandling.cs b/C7Engine/EntryPoints/TurnHandling.cs
+index fcb0f14..3b99c6d 100644
+--- a/C7Engine/EntryPoints/TurnHandling.cs
++++ b/C7Engine/EntryPoints/TurnHandling.cs
+@@ -60,6 +60,7 @@ namespace C7Engine {
+ 				gameData.turn++;
+ 				foreach (Player player in gameData.players) {
+ 					player.MaybeSpawnBonusUnits(gameData);
++					player.QuellResistance(gameData);
+ 					player.RecalculateCitizenMoods(gameData, goIntoDisorderIfUnhappy: true);
+ 					player.DoCorruptionCalculations(gameData);
+ 
+diff --git a/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs b/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs
+index 2ee5c42..39ed56a 100644
+--- a/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs
++++ b/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs
+@@ -131,4 +131,63 @@ public class ConquestsReferenceRulesTest {
+ 		Assert.NotNull(biq.Good);
+ 		Assert.Equal(27, biq.Good.Length);
+ 	}
++
++	[SkippableFact]
++	public void DefaultRulesExposeResistanceCultureBands() {
++		BiqData biq = LoadReferenceBiq();
++		Assert.NotNull(biq.Cult);
++
++		(string name, int ratio, int initial, int continued)[] expected = {
++			("in awe of", 300, 40, 30),
++			("admirers of", 200, 50, 40),
++			("impressed with", 100, 60, 50),
++			("unimpressed by", 75, 70, 60),
++			("dismissive of", 50, 80, 70),
++			("disdainful of", 33, 90, 80),
++		};
++
++		Assert.Equal(expected.Length, biq.Cult.Length);
++		for (int i = 0; i < expected.Length; ++i) {
++			Assert.Equal(expected[i].name, biq.Cult[i].Name);
++			Assert.Equal(expected[i].ratio, biq.Cult[i].CultureRatioPercentage);
++			Assert.Equal(expected[i].initial, biq.Cult[i].InitialResistanceChance);
++			Assert.Equal(expected[i].continued, biq.Cult[i].ContinuedResistanceChance);
++		}
++	}
++
++	[SkippableFact]
++	public void DefaultRulesExposeResistanceGovernmentMatrixAndMilitaryLaw() {
++		BiqData biq = LoadReferenceBiq();
++		Assert.NotNull(biq.Govt);
++		Assert.NotNull(biq.GovtGovt);
++
++		int republic = Array.FindIndex(biq.Govt, government => government.Name == "Republic");
++		int monarchy = Array.FindIndex(biq.Govt, government => government.Name == "Monarchy");
++		int democracy = Array.FindIndex(biq.Govt, government => government.Name == "Democracy");
++		int communism = Array.FindIndex(biq.Govt, government => government.Name == "Communism");
++		int anarchy = Array.FindIndex(biq.Govt, government => government.Name == "Anarchy");
++
++		// The matrix is indexed by conqueror government, then the government
++		// of the resisting civilization. These two +5 exceptions are part of
++		// the stock Conquests rules.
++		Assert.Equal(5, biq.GovtGovt[republic, monarchy].ResistanceModifier);
++		Assert.Equal(5, biq.GovtGovt[democracy, communism].ResistanceModifier);
++		Assert.Equal(-5, biq.GovtGovt[democracy, anarchy].ResistanceModifier);
++
++		Assert.All(biq.Diff, difficulty => Assert.Equal(1, difficulty.MilitaryLaw));
++	}
++
++	[SkippableFact]
++	public void DefaultRulesExposeGovernmentWarWearinessAndGoldenAgeDuration() {
++		BiqData biq = LoadReferenceBiq();
++		GOVT republic = biq.Govt.Single(government => government.Name == "Republic");
++		GOVT democracy = biq.Govt.Single(government => government.Name == "Democracy");
++		GOVT monarchy = biq.Govt.Single(government => government.Name == "Monarchy");
++		RULE rules = Assert.Single(biq.Rule);
++
++		Assert.Equal(1, republic.WarWeariness);
++		Assert.Equal(2, democracy.WarWeariness);
++		Assert.Equal(0, monarchy.WarWeariness);
++		Assert.Equal(20, rules.GoldenAgeDuration);
++	}
+ }
+diff --git a/EngineTests/Compatibility/ResistanceCompatibilityTest.cs b/EngineTests/Compatibility/ResistanceCompatibilityTest.cs
+new file mode 100644
+index 0000000..da15f1a
+--- /dev/null
++++ b/EngineTests/Compatibility/ResistanceCompatibilityTest.cs
+@@ -0,0 +1,215 @@
++using System.Collections.Generic;
++using System.Linq;
++using C7Engine;
++using C7GameData;
++using Xunit;
++
++namespace EngineTests.Compatibility;
++
++/// <summary>
++/// Public-CI behavioral contracts for Civilization III captured-city
++/// resistance. The rule values are synthetic so no original assets are needed.
++/// </summary>
++public class ResistanceCompatibilityTest {
++	private static (C7GameData.GameData gameData, Player conqueror, Player conquered, City city, CitizenType citizenType) MakeCapturedCity(
++		int continuedResistanceChance = 0,
++		int militaryLaw = 1
++	) {
++		C7GameData.GameData gameData = new(customSeed: 12345) {
++			gameDifficulty = new Difficulty { MilitaryLaw = militaryLaw },
++			rules = new Rules { MaxRankOfWorkableTiles = 2 },
++			cultureRelationshipLevels = new List<CultureRelationshipLevel> {
++				new() {
++					name = "equal",
++					cultureRatioPercentage = 100,
++					cultureRatioNumerator = 1,
++					cultureRatioDenominator = 1,
++					initialResistanceChance = 0,
++					continuedResistanceChance = continuedResistanceChance,
++				},
++			},
++		};
++		EngineStorage.InitializeGameDataForTests(gameData);
++
++		ID.Factory ids = new();
++		Player conqueror = new() {
++			id = ids.CreateID("player"),
++			civilization = new Civilization("Conqueror"),
++			government = new Government { name = "Conqueror Government" },
++			rules = gameData.rules,
++		};
++		Player conquered = new() {
++			id = ids.CreateID("player"),
++			civilization = new Civilization("Conquered"),
++			government = new Government { name = "Conquered Government" },
++			rules = gameData.rules,
++		};
++
++		// An empty relationship deal list represents war.
++		conqueror.playerRelationships[conquered.id] = new PlayerRelationship();
++		conquered.playerRelationships[conqueror.id] = new PlayerRelationship();
++
++		TerrainType terrain = new() {
++			Key = "plains",
++			baseFoodProduction = 0,
++			movementCost = 1,
++		};
++		Tile tile = new(ids.CreateID("tile")) {
++			baseTerrainType = terrain,
++			overlayTerrainType = terrain,
++		};
++		City city = new(tile, conqueror, "Captured City", ids.CreateID("city"));
++		tile.cityAtTile = city;
++		conqueror.cities.Add(city);
++		gameData.cities.Add(city);
++		gameData.players.Add(conqueror);
++		gameData.players.Add(conquered);
++
++		// A non-default citizen avoids invoking tile assignment in these
++		// focused tests. Resistance behavior itself is independent of the
++		// citizen's specialist/laborer type.
++		CitizenType citizenType = new() { IsDefaultCitizen = false };
++		return (gameData, conqueror, conquered, city, citizenType);
++	}
++
++	private static CityResident AddResister(City city, Civilization nationality, CitizenType citizenType) {
++		CityResident resident = new() {
++			city = city,
++			nationality = nationality,
++			citizenType = citizenType,
++			tileWorked = Tile.NONE,
++			isResisting = true,
++		};
++		city.residents.Add(resident);
++		return resident;
++	}
++
++	private static void AddGarrisonUnit(City city, Player owner, string category, int attack, int defense, int bombard = 0) {
++		UnitPrototype prototype = new() {
++			name = "Garrison",
++			attack = attack,
++			defense = defense,
++			bombard = bombard,
++		};
++		prototype.categories.Add(category);
++		MapUnit unit = prototype.GetInstance(ID.None("unit"), prototype, owner, location: city.location);
++		city.location.unitsOnTile.Add(unit);
++	}
++
++	[Fact]
++	public void GarrisonCapUsesOnlyGroundCombatUnits() {
++		var (gameData, conqueror, conquered, city, citizenType) = MakeCapturedCity();
++		for (int i = 0; i < 4; ++i) {
++			AddResister(city, conquered.civilization, citizenType);
++		}
++
++		AddGarrisonUnit(city, conqueror, category: "Land", attack: 1, defense: 1);
++		AddGarrisonUnit(city, conqueror, category: "Sea", attack: 2, defense: 2);
++		AddGarrisonUnit(city, conqueror, category: "Land", attack: 0, defense: 1, bombard: 4);
++		AddGarrisonUnit(city, conqueror, category: "Land", attack: 0, defense: 0);
++
++		int quelled = city.QuellResistance(gameData);
++
++		Assert.Equal(1, quelled);
++		Assert.Equal(3, city.residents.Count(resident => resident.isResisting));
++	}
++
++	[Fact]
++	public void MilitaryLawMultipliesThePerUnitQuellingCap() {
++		var (gameData, conqueror, conquered, city, citizenType) = MakeCapturedCity(militaryLaw: 2);
++		for (int i = 0; i < 5; ++i) {
++			AddResister(city, conquered.civilization, citizenType);
++		}
++		AddGarrisonUnit(city, conqueror, category: "Land", attack: 1, defense: 1);
++		AddGarrisonUnit(city, conqueror, category: "Land", attack: 1, defense: 1);
++
++		int quelled = city.QuellResistance(gameData);
++
++		Assert.Equal(4, quelled);
++		Assert.Single(city.residents.Where(resident => resident.isResisting));
++	}
++
++	[Fact]
++	public void PeaceEndsResistanceWithoutAGarrison() {
++		var (gameData, conqueror, conquered, city, citizenType) = MakeCapturedCity(continuedResistanceChance: 100);
++		for (int i = 0; i < 3; ++i) {
++			AddResister(city, conquered.civilization, citizenType);
++		}
++		MultiTurnDeal peace = new(
++			DealType.DiplomaticAgreement,
++			DealSubType.Peace,
++			DealDetails.Exchange
++		);
++		conqueror.playerRelationships[conquered.id].multiTurnDeals.Add(peace);
++		conquered.playerRelationships[conqueror.id].multiTurnDeals.Add(peace);
++
++		int quelled = city.QuellResistance(gameData);
++
++		Assert.Equal(3, quelled);
++		Assert.DoesNotContain(city.residents, resident => resident.isResisting);
++	}
++
++	[Fact]
++	public void ContinuedResistanceChanceUsesCultureBandAndGovernmentPair() {
++		var (gameData, conqueror, conquered, city, _) = MakeCapturedCity();
++		gameData.cultureRelationshipLevels = new List<CultureRelationshipLevel> {
++			new() {
++				name = "in awe of",
++				cultureRatioPercentage = 300,
++				cultureRatioNumerator = 3,
++				cultureRatioDenominator = 1,
++				continuedResistanceChance = 30,
++			},
++			new() {
++				name = "impressed with",
++				cultureRatioPercentage = 100,
++				cultureRatioNumerator = 1,
++				cultureRatioDenominator = 1,
++				continuedResistanceChance = 50,
++			},
++			new() {
++				name = "disdainful of",
++				cultureRatioPercentage = 33,
++				cultureRatioNumerator = 1,
++				cultureRatioDenominator = 3,
++				continuedResistanceChance = 80,
++			},
++		};
++		city.perPlayerCulture[conqueror] = 300;
++		city.perPlayerCulture[conquered] = 100;
++		conqueror.government.resistanceModifierByForeignGovernment[conquered.government.name] = 5;
++
++		CultureRelationshipLevel relationship = ResistanceRules.GetCultureRelationship(gameData, conqueror, conquered);
++		int chance = ResistanceRules.ResistanceChance(gameData, conqueror, conquered, continuedResistance: true);
++
++		Assert.Equal("in awe of", relationship.name);
++		Assert.Equal(35, chance);
++	}
++
++	[Fact]
++	public void ResistersConsumeNoFoodAndAreRemovedFirstByStarvation() {
++		var (gameData, conqueror, conquered, city, citizenType) = MakeCapturedCity();
++		CityResident productiveCitizen = new() {
++			city = city,
++			nationality = conqueror.civilization,
++			citizenType = citizenType,
++			tileWorked = Tile.NONE,
++		};
++		city.residents.Add(productiveCitizen);
++		city.residents.Add(new CityResident {
++			city = city,
++			nationality = conqueror.civilization,
++			citizenType = citizenType,
++			tileWorked = Tile.NONE,
++		});
++		CityResident resister = AddResister(city, conquered.civilization, citizenType);
++
++		Assert.Equal(4, city.FoodConsumedPerTurn());
++
++		city.foodStored = 0;
++		city.HandleCityGrowth(gameData);
++
++		Assert.DoesNotContain(resister, city.residents);
++		Assert.Contains(productiveCitizen, city.residents);
++	}
++}
