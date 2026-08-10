@@ -73,8 +73,18 @@ namespace C7Engine {
 					// Note that we do growth after calculating citizen moods,
 					// to ensure that the player has a chance to deal with the
 					// unhappiness of a new citizen during their turn.
+					bool goldenAgeWasActiveForThisYieldCycle = player.IsGoldenAgeActive;
 					log.Information($"\n*** City growth/production for turn {gameData.turn}, player {player} ***");
 					player.HandleCityUpdates(gameData);
+
+					// A Golden Age triggered by combat applies to this yield cycle.
+					// A Golden Age triggered by a wonder completed during this cycle
+					// begins with the following cycle, so it receives all configured
+					// turns and does not affect only a suffix of the city list.
+					if (goldenAgeWasActiveForThisYieldCycle) {
+						player.AdvanceGoldenAgeTurn();
+					}
+					player.MaybeStartGoldenAgeFromWonders(gameData);
 				}
 
 				// Now that the turn is ending, do all the bookkeeping for the

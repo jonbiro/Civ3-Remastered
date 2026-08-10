@@ -194,4 +194,14 @@ public class ConquestsReferenceRulesTest {
 		Assert.Equal(20, rules.GoldenAgeDuration);
 	}
 
+	[SkippableFact]
+	public void DefaultRulesExposeGoldenAgeUnitFlags() {
+		BiqData biq = LoadReferenceBiq();
+		PRTO panzer = biq.Prto.Single(unit => unit.Name == "Panzer");
+		PRTO warrior = biq.Prto.Single(unit => unit.Name == "Warrior");
+
+		Assert.True(panzer.StartsGoldenAge);
+		Assert.False(warrior.StartsGoldenAge);
+	}
+
 }

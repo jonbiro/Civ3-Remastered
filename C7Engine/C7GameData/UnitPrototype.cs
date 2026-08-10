@@ -114,6 +114,17 @@ namespace C7GameData {
 			}
 		}
 
+		public bool startsGoldenAge {
+			get => flags.Contains(SaveUnitPrototype.Flag.StartsGoldenAge);
+			set {
+				if (value) {
+					flags.Add(SaveUnitPrototype.Flag.StartsGoldenAge);
+				} else {
+					flags.Remove(SaveUnitPrototype.Flag.StartsGoldenAge);
+				}
+			}
+		}
+
 		public HashSet<string> categories = new HashSet<string>();
 
 		public HashSet<UnitAction> actions = [];
@@ -250,9 +261,9 @@ namespace C7GameData {
 		///
 		/// "AllowLesserUnitProduction" removes unit obsolescence.
 		private bool IsUnitObsolete(City city, HashSet<Resource> accessibleResources) {
-			// TODO: Consider golden ages when determining whether a unit is obsolete.
-			// If a golden age has not yet been triggered and a unit can trigger one,
-			// it shouldn't be marked as obsolete, even if its upgrade is available.
+			// Civ III keeps a Golden-Age-triggering unit available until that
+			// civilization has actually experienced its one Golden Age.
+			if (startsGoldenAge && !city.owner.hasTriggeredGoldenAge) return false;
 
 			if (EngineStorage.gameData.rules.AllowLesserUnitProduction) return false;
 

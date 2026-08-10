@@ -40,6 +40,18 @@ public partial class Tile {
 
 		private Yield ApplyPlayerModifiers(Player player) {
 			player.government.tileModifier?.Invoke(this);
+
+			// During a Civ III Golden Age, a worked tile that already produces
+			// at least one shield and/or commerce produces one additional unit
+			// of that yield. Food is unaffected. Apply this after the ordinary
+			// terrain, building, and government modifiers so "already produces"
+			// is evaluated on the tile's usable pre-Golden-Age output.
+			if (player.IsGoldenAgeActive
+				&& (type == YieldType.Production || type == YieldType.Commerce)
+				&& yield > 0) {
+				++bonus;
+			}
+
 			return this;
 		}
 
