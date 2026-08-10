@@ -1,11 +1,9 @@
 name: Temporary current source snapshot
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/civ3-reference-compatibility
-    paths:
-      - .github/workflows/source-snapshot-current.yml
+      - agent/civ3-install-integration
 
 permissions:
   contents: read
@@ -14,7 +12,7 @@ jobs:
   snapshot:
     runs-on: ubuntu-24.04
     steps:
-      - name: Checkout
+      - name: Checkout pull request head
         uses: actions/checkout@v6
 
       - name: Archive source
@@ -27,5 +25,3 @@ jobs:
           path: ../civ3-remastered-current.tar.gz
           if-no-files-found: error
           retention-days: 1
-
-# trigger 2
