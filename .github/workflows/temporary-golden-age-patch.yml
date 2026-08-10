@@ -1,23 +1,25 @@
 name: Temporary Golden Age compatibility patch
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/golden-age-compatibility
+      - agent/civ3-reference-compatibility
     paths:
       - .github/workflows/temporary-golden-age-patch.yml
+      - scripts/golden-age.part*
 
 permissions:
   contents: write
 
 jobs:
   apply-patch:
+    if: github.head_ref == 'agent/golden-age-compatibility'
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout Golden Age branch
         uses: actions/checkout@v6
         with:
-          ref: agent/golden-age-compatibility
+          ref: ${{ github.event.pull_request.head.ref }}
           fetch-depth: 0
 
       - name: Apply verified Golden Age patch
@@ -31,6 +33,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
           git commit -m "Implement Civilization III Golden Age lifecycle"
-          git push origin HEAD:agent/golden-age-compatibility
-
-# trigger 2
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
