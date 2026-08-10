@@ -632,6 +632,13 @@ namespace C7GameData {
 				player.inAnarchyUntilTurn = save.TurnNumber + leader.AnarchyTurnsLeft;
 				player.primaryColorIndex = leader.Color;
 
+				// Civ III stores -1 until a civilization has ever triggered its
+				// Golden Age, otherwise the turn at which the active period ends.
+				player.hasTriggeredGoldenAge = leader.GoldenAgeEndTurn >= 0;
+				player.goldenAgeTurnsRemaining = leader.GoldenAgeEndTurn >= currentTurn
+					? leader.GoldenAgeEndTurn - currentTurn
+					: 0;
+
 				save.Players.Add(player);
 				i++;
 			}
@@ -1380,6 +1387,7 @@ namespace C7GameData {
 				if (prto.LethalLandBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalLandBombardment);
 				if (prto.LethalSeaBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalSeaBombardment);
 				if (prto.Radar) prototype.flags.Add(SaveUnitPrototype.Flag.Radar);
+				if (prto.StartsGoldenAge) prototype.flags.Add(SaveUnitPrototype.Flag.StartsGoldenAge);
 
 				prototype.actions.UnionWith(GetUnitActions(prto));
 				prototype.terraformActions.UnionWith(GetUnitTerraforms(prto).Select(tfKey => terraformIdByCiv3Key[tfKey]));

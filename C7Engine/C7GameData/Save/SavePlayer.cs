@@ -14,6 +14,8 @@ namespace C7GameData.Save {
 		public bool isIncludedInGame = true;
 		public bool canBePicked = true;
 		public bool skipFirstTurn = false;
+		public bool hasTriggeredGoldenAge = false;
+		public int goldenAgeTurnsRemaining = 0;
 
 		public string civilization;
 
@@ -80,6 +82,8 @@ namespace C7GameData.Save {
 				alliance = alliance is not null ? alliances.First(a => a.name == alliance) : null,
 				hasPlayedThisTurn = hasPlayedCurrentTurn,
 				skipFirstTurn = skipFirstTurn,
+				hasTriggeredGoldenAge = hasTriggeredGoldenAge,
+				goldenAgeTurnsRemaining = goldenAgeTurnsRemaining,
 				defeated = defeated,
 				primaryColorIndex = primaryColorIndex,
 				secondaryColorIndex = secondaryColorIndex,
@@ -137,6 +141,9 @@ namespace C7GameData.Save {
 			secondaryColorIndex = player.secondaryColorIndex;
 			human = player.isHuman;
 			hasPlayedCurrentTurn = player.hasPlayedThisTurn;
+			skipFirstTurn = player.skipFirstTurn;
+			hasTriggeredGoldenAge = player.hasTriggeredGoldenAge;
+			goldenAgeTurnsRemaining = player.goldenAgeTurnsRemaining;
 			defeated = player.defeated;
 			civilization = player.civilization?.name;
 			// TODO: this should be computed by looking at cities defined in the save

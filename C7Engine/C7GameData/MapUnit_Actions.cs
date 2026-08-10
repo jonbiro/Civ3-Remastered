@@ -384,6 +384,7 @@ public partial class MapUnit {
 		if ((result == CombatResult.AttackerKilled) || (result == CombatResult.DefenderKilled)) {
 			var (dead, alive) = (result == CombatResult.AttackerKilled) ? (attacker, defender) : (defender, attacker);
 			alive.RollToPromote(dead);
+			alive.owner.MaybeStartGoldenAgeFromUnitVictory(alive, dead, EngineStorage.gameData);
 			await dead.animateAsync(MapUnit.AnimatedAction.DEATH);
 			dead.RemoveFromPlay();
 		}

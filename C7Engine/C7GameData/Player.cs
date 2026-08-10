@@ -65,6 +65,14 @@ namespace C7GameData {
 		public bool hasPlayedThisTurn = false;
 		public bool skipFirstTurn = false;
 
+		// A civilization can experience at most one Golden Age. The remaining
+		// counter is decremented after that civilization receives its per-turn
+		// city yields, so a newly triggered Golden Age receives the full rules
+		// duration.
+		public bool hasTriggeredGoldenAge = false;
+		public int goldenAgeTurnsRemaining = 0;
+		public bool IsGoldenAgeActive => goldenAgeTurnsRemaining > 0;
+
 		// Has this player been defeated?
 		public bool defeated = false;
 
@@ -209,6 +217,47 @@ namespace C7GameData {
 			} else {
 				return "ERAS_Modern_Era";
 			}
+		}
+
+		public bool StartGoldenAge(GameData gameData) {
+			if (isBarbarians || hasTriggeredGoldenAge || gameData.rules.GoldenAgeDuration <= 0) {
+				return false;
+			}
+
+			hasTriggeredGoldenAge = true;
+			goldenAgeTurnsRemaining = gameData.rules.GoldenAgeDuration;
+			log.Information($"{this} has entered a {goldenAgeTurnsRemaining}-turn Golden Age");
+			return true;
+		}
+
+		public void AdvanceGoldenAgeTurn() {
+			if (goldenAgeTurnsRemaining > 0) {
+				--goldenAgeTurnsRemaining;
+			}
+		}
+
+		public bool MaybeStartGoldenAgeFromUnitVictory(MapUnit victor, MapUnit defeated, GameData gameData) {
+			if (victor?.owner != this || defeated?.owner == null || defeated.owner == this) {
+				return false;
+			}
+			if (defeated.owner.isBarbarians || !victor.unitType.startsGoldenAge) {
+				return false;
+			}
+			return StartGoldenAge(gameData);
+		}
+
+		public bool MaybeStartGoldenAgeFromWonders(GameData gameData) {
+			if (hasTriggeredGoldenAge || civilization?.traits == null || civilization.traits.Count == 0) {
+				return false;
+			}
+
+			HashSet<Civilization.Trait> wonderTraits = cities
+				.SelectMany(city => city.constructed_buildings)
+				.Where(cityBuilding => cityBuilding.builtByPlayer == this && cityBuilding.building.IsGreatWonder())
+				.SelectMany(cityBuilding => cityBuilding.building.traits)
+				.ToHashSet();
+
+			return civilization.traits.All(wonderTraits.Contains) && StartGoldenAge(gameData);
 		}
 
 		public void AddUnit(MapUnit unit) {
