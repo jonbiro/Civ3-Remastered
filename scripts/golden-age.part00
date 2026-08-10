@@ -1,1 +1,115 @@
-RnJvbSAzN2QwNjE0MjA5NGI1M2M4ZWY2NjExMDZmMDJjODE1NDcwYTY3OGZiIE1vbiBTZXAgMTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBPcGVuQUkgPGFzc2lzdGFudEBvcGVuYWkuY29tPgpEYXRlOiBNb24sIDEwIEF1ZyAyMDI2IDA1OjIxOjIxICswMDAwClN1YmplY3Q6IFtQQVRDSF0gSW1wbGVtZW50IENpdmlsaXphdGlvbiBJSUkgR29sZGVuIEFnZSBsaWZlY3ljbGUKCgpkaWZmIC0tZ2l0IGEvQzdFbmdpbmUvQzdHYW1lRGF0YS9CdWlsZGluZy5jcyBiL0M3RW5naW5lL0M3R2FtZURhdGEvQnVpbGRpbmcuY3MKaW5kZXggOGQ0YzJlNi4uMzkwNDliMyAxMDA2NDQKLS0tIGEvQzdFbmdpbmUvQzdHYW1lRGF0YS9CdWlsZGluZy5jcworKysgYi9DN0VuZ2luZS9DN0dhbWVEYXRhL0J1aWxkaW5nLmNzCkBAIC00Niw2ICs0Niw3IEBAIG5hbWVzcGFjZSBDN0dhbWVEYXRhIHsKIAkJcHVibGljIGJvb2wgdHJlYXN1cnlFYXJuc0ludGVyZXN0OwogCQlwdWJsaWMgYm9vbCBhbGxvd3NXYXRlclRyYWRlOwogCQlwdWJsaWMgYm9vbCBhbGxvd3NBaXJUcmFkZTsKKwkJcHVibGljIEhhc2hTZXQ8Q2l2aWxpemF0aW9uLlRyYWl0PiB0cmFpdHMgPSBbXTsKIAogCQlwdWJsaWMgaW50IGN1bHR1cmVQZXJUdXJuID0gMDsKIAkJcHVibGljIGludCBtYWludGVuYW5jZUNvc3QgPSAwOwpAQCAtMTAwLDYgKzEwMSw3IEBAIG5hbWVzcGFjZSBDN0dhbWVEYXRhIHsKIAkJCXRyZWFzdXJ5RWFybnNJbnRlcmVzdCA9IGJ1aWxkaW5nLmZsYWdzLkNvbnRhaW5zKFNhdmVCdWlsZGluZy5GbGFnLlRyZWFzdXJ5RWFybnNJbnRlcmVzdCk7CiAJCQlhbGxvd3NXYXRlclRyYWRlID0gYnVpbGRpbmcuZmxhZ3MuQ29udGFpbnMoU2F2ZUJ1aWxkaW5nLkZsYWcuQWxsb3dzV2F0ZXJUcmFkZSk7CiAJCQlhbGxvd3NBaXJUcmFkZSA9IGJ1aWxkaW5nLmZsYWdzLkNvbnRhaW5zKFNhdmVCdWlsZGluZy5GbGFnLkFsbG93c0FpclRyYWRlKTsKKwkJCXRyYWl0cyA9IG5ldyBIYXNoU2V0PENpdmlsaXphdGlvbi5UcmFpdD4oYnVpbGRpbmcudHJhaXRzKTsKIAogCQkJaWYgKGJ1aWxkaW5nLmdyZWF0V29uZGVyUHJvcGVydGllcyAhPSBudWxsKSB7CiAJCQkJZ3JlYXRXb25kZXJQcm9wZXJ0aWVzID0gbmV3KCk7CmRpZmYgLS1naXQgYS9DN0VuZ2luZS9DN0dhbWVEYXRhL0ltcG9ydENpdjMuY3MgYi9DN0VuZ2luZS9DN0dhbWVEYXRhL0ltcG9ydENpdjMuY3MKaW5kZXggNTkxYjU3Ny4uYTYxNDVmOSAxMDA2NDQKLS0tIGEvQzdFbmdpbmUvQzdHYW1lRGF0YS9JbXBvcnRDaXYzLmNzCisrKyBiL0M3RW5naW5lL0M3R2FtZURhdGEvSW1wb3J0Q2l2My5jcwpAQCAtNjMyLDYgKzYzMiwxMyBAQCBuYW1lc3BhY2UgQzdHYW1lRGF0YSB7CiAJCQkJcGxheWVyLmluQW5hcmNoeVVudGlsVHVybiA9IHNhdmUuVHVybk51bWJlciArIGxlYWRlci5BbmFyY2h5VHVybnNMZWZ0OwogCQkJCXBsYXllci5wcmltYXJ5Q29sb3JJbmRleCA9IGxlYWRlci5Db2xvcjsKIAorCQkJCS8vIENpdiBJSUkgc3RvcmVzIC0xIHVudGlsIGEgY2l2aWxpemF0aW9uIGhhcyBldmVyIHRyaWdnZXJlZCBpdHMKKwkJCQkvLyBHb2xkZW4gQWdlLCBvdGhlcndpc2UgdGhlIHR1cm4gYXQgd2hpY2ggdGhlIGFjdGl2ZSBwZXJpb2QgZW5kcy4KKwkJCQlwbGF5ZXIuaGFzVHJpZ2dlcmVkR29sZGVuQWdlID0gbGVhZGVyLkdvbGRlbkFnZUVuZFR1cm4gPj0gMDsKKwkJCQlwbGF5ZXIuZ29sZGVuQWdlVHVybnNSZW1haW5pbmcgPSBsZWFkZXIuR29sZGVuQWdlRW5kVHVybiA+PSBjdXJyZW50VHVybgorCQkJCQk/IGxlYWRlci5Hb2xkZW5BZ2VFbmRUdXJuIC0gY3VycmVudFR1cm4KKwkJCQkJOiAwOworCiAJCQkJc2F2ZS5QbGF5ZXJzLkFkZChwbGF5ZXIpOwogCQkJCWkrKzsKIAkJCX0KQEAgLTEzODAsNiArMTM4Nyw3IEBAIG5hbWVzcGFjZSBDN0dhbWVEYXRhIHsKIAkJCQlpZiAocHJ0by5MZXRoYWxMYW5kQm9tYmFyZG1lbnQpIHByb3RvdHlwZS5mbGFncy5BZGQoU2F2ZVVuaXRQcm90b3R5cGUuRmxhZy5MZXRoYWxMYW5kQm9tYmFyZG1lbnQpOwogCQkJCWlmIChwcnRvLkxldGhhbFNlYUJvbWJhcmRtZW50KSBwcm90b3R5cGUuZmxhZ3MuQWRkKFNhdmVVbml0UHJvdG90eXBlLkZsYWcuTGV0aGFsU2VhQm9tYmFyZG1lbnQpOwogCQkJCWlmIChwcnRvLlJhZGFyKSBwcm90b3R5cGUuZmxhZ3MuQWRkKFNhdmVVbml0UHJvdG90eXBlLkZsYWcuUmFkYXIpOworCQkJCWlmIChwcnRvLlN0YXJ0c0dvbGRlbkFnZSkgcHJvdG90eXBlLmZsYWdzLkFkZChTYXZlVW5pdFByb3RvdHlwZS5GbGFnLlN0YXJ0c0dvbGRlbkFnZSk7CiAKIAkJCQlwcm90b3R5cGUuYWN0aW9ucy5VbmlvbldpdGgoR2V0VW5pdEFjdGlvbnMocHJ0bykpOwogCQkJCXByb3RvdHlwZS50ZXJyYWZvcm1BY3Rpb25zLlVuaW9uV2l0aChHZXRVbml0VGVycmFmb3JtcyhwcnRvKS5TZWxlY3QodGZLZXkgPT4gdGVycmFmb3JtSWRCeUNpdjNLZXlbdGZLZXldKSk7CmRpZmYgLS1naXQgYS9DN0VuZ2luZS9DN0dhbWVEYXRhL01hcFVuaXRfQWN0aW9ucy5jcyBiL0M3RW5naW5lL0M3R2FtZURhdGEvTWFwVW5pdF9BY3Rpb25zLmNzCmluZGV4IGEyNzVkODAuLjMyMzg4ZDkgMTAwNjQ0Ci0tLSBhL0M3RW5naW5lL0M3R2FtZURhdGEvTWFwVW5pdF9BY3Rpb25zLmNzCisrKyBiL0M3RW5naW5lL0M3R2FtZURhdGEvTWFwVW5pdF9BY3Rpb25zLmNzCkBAIC0zODQsNiArMzg0LDcgQEAgcHVibGljIHBhcnRpYWwgY2xhc3MgTWFwVW5pdCB7CiAJCWlmICgocmVzdWx0ID09IENvbWJhdFJlc3VsdC5BdHRhY2tlcktpbGxlZCkgfHwgKHJlc3VsdCA9PSBDb21iYXRSZXN1bHQuRGVmZW5kZXJLaWxsZWQpKSB7CiAJCQl2YXIgKGRlYWQsIGFsaXZlKSA9IChyZXN1bHQgPT0gQ29tYmF0UmVzdWx0LkF0dGFja2VyS2lsbGVkKSA/IChhdHRhY2tlciwgZGVmZW5kZXIpIDogKGRlZmVuZGVyLCBhdHRhY2tlcik7CiAJCQlhbGl2ZS5Sb2xsVG9Qcm9tb3RlKGRlYWQpOworCQkJYWxpdmUub3duZXIuTWF5YmVTdGFydEdvbGRlbkFnZUZyb21Vbml0VmljdG9yeShhbGl2ZSwgZGVhZCwgRW5naW5lU3RvcmFnZS5nYW1lRGF0YSk7CiAJCQlhd2FpdCBkZWFkLmFuaW1hdGVBc3luYyhNYXBVbml0LkFuaW1hdGVkQWN0aW9uLkRFQVRIKTsKIAkJCWRlYWQuUmVtb3ZlRnJvbVBsYXkoKTsKIAkJfQpkaWZmIC0tZ2l0IGEvQzdFbmdpbmUvQzdHYW1lRGF0YS9QbGF5ZXIuY3MgYi9DN0VuZ2luZS9DN0dhbWVEYXRhL1BsYXllci5jcwpAQCAtNjUsNiArNjUsMTQgQEAgbmFtZXNwYWNlIEM3R2FtZURhdGEgewogCQlwdWJsaWMgYm9vbCBoYXNQbGF5ZWRUaGlzVHVybiA9IGZhbHNlOwogCQlwdWJsaWMgYm9vbCBza2lwRmlyc3RUdXJuID0gZmFsc2U7CiAKKwkJLy8gQSBjaXZpbGl6YXRpb24gY2FuIGV4cGVyaWVuY2UgYXQgbW9zdCBvbmUgR29sZGVuIEFnZS4gVGhlIHJlbWFpbmluZworCQkvLyBjb3VudGVyIGlzIGRlY3JlbWVudGVkIGFmdGVyIHRoYXQgY2l2aWxpemF0aW9uIHJlY2VpdmVzIGl0cyBwZXItdHVybgorCQkvLyBjaXR5IHlpZWxkcywgc28gYSBuZXdseSB0cmlnZ2VyZWQgR29sZGVuIEFnZSByZWNlaXZlcyB0aGUgZnVsbCBydWxlcworCQkvLyBkdXJhdGlvbi4KKwkJcHVibGljIGJvb2wgaGFzVHJpZ2dlcmVkR29sZGVuQWdlID0gZmFsc2U7CisJCXB1YmxpYyBpbnQgZ29sZGVuQWdlVHVybnNSZW1haW5pbmcgPSAwOworCQlwdWJsaWMgYm9vbCBJc0dvbGRlbkFnZUFjdGl2ZSA9PiBnb2xkZW5BZ2VUdXJuc1JlbWFpbmluZyA+IDA7CisKIAkJLy8gSGFzIHRoaXMgcGxheWVyIGJlZW4gZGVmZWF0ZWQ/CiAJCXB1YmxpYyBib29sIGRlZmVhdGVkID0gZmFsc2U7CiAKQEAgLTIxMSw2ICsyMTksNDcgQEAgbmFtZXNwYWNlIEM3R2FtZURhdGEgewogCQkJfQogCQl9CiAKKwkJcHVibGljIGJvb2wgU3RhcnRHb2xkZW5BZ2UoR2FtZURhdGEgZ2FtZURhdGEpIHsKKwkJCWlmIChpc0JhcmJhcmlhbnMgfHwgaGFzVHJpZ2dlcmVkR29sZGVuQWdlIHx8IGdhbWVEYXRhLnJ1bGVzLkdvbGRlbkFnZUR1cmF0aW9uIDw9IDApIHsKKwkJCQlyZXR1cm4gZmFsc2U7CisJCQl9CisKKwkJCWhhc1RyaWdnZXJlZEdvbGRlbkFnZSA9IHRydWU7CisJCQlnb2xkZW5BZ2VUdXJuc1JlbWFpbmluZyA9IGdhbWVEYXRhLnJ1bGVzLkdvbGRlbkFnZUR1cmF0aW9uOworCQkJbG9nLkluZm9ybWF0aW9uKCQie3RoaXN9IGhhcyBlbnRlcmVkIGEge2dvbGRlbkFnZVR1cm5zUmVtYWluaW5nfS10dXJuIEdvbGRlbiBBZ2UiKTsKKwkJCXJldHVybiB0cnVlOworCQl9CisKKwkJcHVibGljIHZvaWQgQWR2YW5jZUdvbGRlbkFnZVR1cm4oKSB7CisJCQlpZiAoZ29sZGVuQWdlVHVybnNSZW1haW5pbmcgPiAwKSB7CisJCQkJLS1nb2xkZW5BZ2VUdXJuc1JlbWFpbmluZzsKKwkJCX0KKwkJfQorCisJCXB1YmxpYyBib29sIE1heWJlU3RhcnRHb2xkZW5BZ2VGcm9tVW5pdFZpY3RvcnkoTWFwVW5pdCB2aWN0b3IsIE1hcFVuaXQgZGVmZWF0ZWQsIEdhbWVEYXRhIGdhbWVEYXRhKSB7CisJCQlpZiAodmljdG9yPy5vd25lciAhPSB0aGlzIHx8IGRlZmVhdGVkPy5vd25lciA9PSBudWxsIHx8IGRlZmVhdGVkLm93bmVyID09IHRoaXMpIHsKKwkJCQlyZXR1cm4gZmFsc2U7CisJCQl9CisJCQlpZiAoZGVmZWF0ZWQub3duZXIuaXNCYXJiYXJpYW5zIHx8ICF2aWN0b3IudW5pdFR5cGUuc3RhcnRzR29sZGVuQWdlKSB7CisJCQkJcmV0dXJuIGZhbHNlOworCQkJfQorCQkJcmV0dXJuIFN0YXJ0R29sZGVuQWdlKGdhbWVEYXRhKTsKKwkJfQorCisJCXB1YmxpYyBib29sIE1heWJlU3RhcnRHb2xkZW5BZ2VGcm9tV29uZGVycyhHYW1lRGF0YSBn
+From 37d06142094b53c8ef661106f02c815470a678fb Mon Sep 17 00:00:00 2001
+From: OpenAI <assistant@openai.com>
+Date: Mon, 10 Aug 2026 05:21:21 +0000
+Subject: [PATCH] Implement Civilization III Golden Age lifecycle
+
+
+diff --git a/C7Engine/C7GameData/Building.cs b/C7Engine/C7GameData/Building.cs
+index 8d4c2e6..39049b3 100644
+--- a/C7Engine/C7GameData/Building.cs
++++ b/C7Engine/C7GameData/Building.cs
+@@ -46,6 +46,7 @@ namespace C7GameData {
+ 		public bool treasuryEarnsInterest;
+ 		public bool allowsWaterTrade;
+ 		public bool allowsAirTrade;
++		public HashSet<Civilization.Trait> traits = [];
+ 
+ 		public int culturePerTurn = 0;
+ 		public int maintenanceCost = 0;
+@@ -100,6 +101,7 @@ namespace C7GameData {
+ 			treasuryEarnsInterest = building.flags.Contains(SaveBuilding.Flag.TreasuryEarnsInterest);
+ 			allowsWaterTrade = building.flags.Contains(SaveBuilding.Flag.AllowsWaterTrade);
+ 			allowsAirTrade = building.flags.Contains(SaveBuilding.Flag.AllowsAirTrade);
++			traits = new HashSet<Civilization.Trait>(building.traits);
+ 
+ 			if (building.greatWonderProperties != null) {
+ 				greatWonderProperties = new();
+diff --git a/C7Engine/C7GameData/ImportCiv3.cs b/C7Engine/C7GameData/ImportCiv3.cs
+index 591b577..a6145f9 100644
+--- a/C7Engine/C7GameData/ImportCiv3.cs
++++ b/C7Engine/C7GameData/ImportCiv3.cs
+@@ -632,6 +632,13 @@ namespace C7GameData {
+ 				player.inAnarchyUntilTurn = save.TurnNumber + leader.AnarchyTurnsLeft;
+ 				player.primaryColorIndex = leader.Color;
+ 
++				// Civ III stores -1 until a civilization has ever triggered its
++				// Golden Age, otherwise the turn at which the active period ends.
++				player.hasTriggeredGoldenAge = leader.GoldenAgeEndTurn >= 0;
++				player.goldenAgeTurnsRemaining = leader.GoldenAgeEndTurn >= currentTurn
++					? leader.GoldenAgeEndTurn - currentTurn
++					: 0;
++
+ 				save.Players.Add(player);
+ 				i++;
+ 			}
+@@ -1380,6 +1387,7 @@ namespace C7GameData {
+ 				if (prto.LethalLandBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalLandBombardment);
+ 				if (prto.LethalSeaBombardment) prototype.flags.Add(SaveUnitPrototype.Flag.LethalSeaBombardment);
+ 				if (prto.Radar) prototype.flags.Add(SaveUnitPrototype.Flag.Radar);
++				if (prto.StartsGoldenAge) prototype.flags.Add(SaveUnitPrototype.Flag.StartsGoldenAge);
+ 
+ 				prototype.actions.UnionWith(GetUnitActions(prto));
+ 				prototype.terraformActions.UnionWith(GetUnitTerraforms(prto).Select(tfKey => terraformIdByCiv3Key[tfKey]));
+diff --git a/C7Engine/C7GameData/MapUnit_Actions.cs b/C7Engine/C7GameData/MapUnit_Actions.cs
+index a275d80..32388d9 100644
+--- a/C7Engine/C7GameData/MapUnit_Actions.cs
++++ b/C7Engine/C7GameData/MapUnit_Actions.cs
+@@ -384,6 +384,7 @@ public partial class MapUnit {
+ 		if ((result == CombatResult.AttackerKilled) || (result == CombatResult.DefenderKilled)) {
+ 			var (dead, alive) = (result == CombatResult.AttackerKilled) ? (attacker, defender) : (defender, attacker);
+ 			alive.RollToPromote(dead);
++			alive.owner.MaybeStartGoldenAgeFromUnitVictory(alive, dead, EngineStorage.gameData);
+ 			await dead.animateAsync(MapUnit.AnimatedAction.DEATH);
+ 			dead.RemoveFromPlay();
+ 		}
+diff --git a/C7Engine/C7GameData/Player.cs b/C7Engine/C7GameData/Player.cs
+index beb16ed..423d970 100644
+--- a/C7Engine/C7GameData/Player.cs
++++ b/C7Engine/C7GameData/Player.cs
+@@ -65,6 +65,14 @@ namespace C7GameData {
+ 		public bool hasPlayedThisTurn = false;
+ 		public bool skipFirstTurn = false;
+ 
++		// A civilization can experience at most one Golden Age. The remaining
++		// counter is decremented after that civilization receives its per-turn
++		// city yields, so a newly triggered Golden Age receives the full rules
++		// duration.
++		public bool hasTriggeredGoldenAge = false;
++		public int goldenAgeTurnsRemaining = 0;
++		public bool IsGoldenAgeActive => goldenAgeTurnsRemaining > 0;
++
+ 		// Has this player been defeated?
+ 		public bool defeated = false;
+ 
+@@ -211,6 +219,47 @@ namespace C7GameData {
+ 			}
+ 		}
+ 
++		public bool StartGoldenAge(GameData gameData) {
++			if (isBarbarians || hasTriggeredGoldenAge || gameData.rules.GoldenAgeDuration <= 0) {
++				return false;
++			}
++
++			hasTriggeredGoldenAge = true;
++			goldenAgeTurnsRemaining = gameData.rules.GoldenAgeDuration;
++			log.Information($"{this} has entered a {goldenAgeTurnsRemaining}-turn Golden Age");
++			return true;
++		}
++
++		public void AdvanceGoldenAgeTurn() {
++			if (goldenAgeTurnsRemaining > 0) {
++				--goldenAgeTurnsRemaining;
++			}
++		}
++
++		public bool MaybeStartGoldenAgeFromUnitVictory(MapUnit victor, MapUnit defeated, GameData gameData) {
++			if (victor?.owner != this || defeated?.owner == null || defeated.owner == this) {
++				return false;
++			}
++			if (defeated.owner.isBarbarians || !victor.unitType.startsGoldenAge) {
++				return false;
++			}
++			return StartGoldenAge(gameData);
++		}
++
++		public bool MaybeStartGoldenAgeFromWonders(GameData g

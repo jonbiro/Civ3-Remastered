@@ -24,7 +24,7 @@ jobs:
 
       - name: Apply verified Golden Age patch
         run: |
-          cat scripts/golden-age.part* | tr -d '\r\n' | base64 --decode > /tmp/golden-age.patch
+          cat scripts/golden-age.part* > /tmp/golden-age.patch
           echo "60f61eae982e27e30b9e352f2f6a936a27f524cbd2f1cc75ec4949a6a4453f5a  /tmp/golden-age.patch" | sha256sum --check
           git apply --check /tmp/golden-age.patch
           git apply /tmp/golden-age.patch

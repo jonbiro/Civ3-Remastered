@@ -1,1 +1,136 @@
-cnlQb2ludHMvVHVybkhhbmRsaW5nLmNzCkBAIC03Myw4ICs3MywxOCBAQCBuYW1lc3BhY2UgQzdFbmdpbmUgewogCQkJCQkvLyBOb3RlIHRoYXQgd2UgZG8gZ3Jvd3RoIGFmdGVyIGNhbGN1bGF0aW5nIGNpdGl6ZW4gbW9vZHMsCiAJCQkJCS8vIHRvIGVuc3VyZSB0aGF0IHRoZSBwbGF5ZXIgaGFzIGEgY2hhbmNlIHRvIGRlYWwgd2l0aCB0aGUKIAkJCQkJLy8gdW5oYXBwaW5lc3Mgb2YgYSBuZXcgY2l0aXplbiBkdXJpbmcgdGhlaXIgdHVybi4KKwkJCQkJYm9vbCBnb2xkZW5BZ2VXYXNBY3RpdmVGb3JUaGlzWWllbGRDeWNsZSA9IHBsYXllci5Jc0dvbGRlbkFnZUFjdGl2ZTsKIAkJCQkJbG9nLkluZm9ybWF0aW9uKCQiXG4qKiogQ2l0eSBncm93dGgvcHJvZHVjdGlvbiBmb3IgdHVybiB7Z2FtZURhdGEudHVybn0sIHBsYXllciB7cGxheWVyfSAqKioiKTsKIAkJCQkJcGxheWVyLkhhbmRsZUNpdHlVcGRhdGVzKGdhbWVEYXRhKTsKKworCQkJCQkvLyBBIEdvbGRlbiBBZ2UgdHJpZ2dlcmVkIGJ5IGNvbWJhdCBhcHBsaWVzIHRvIHRoaXMgeWllbGQgY3ljbGUuCisJCQkJCS8vIEEgR29sZGVuIEFnZSB0cmlnZ2VyZWQgYnkgYSB3b25kZXIgY29tcGxldGVkIGR1cmluZyB0aGlzIGN5Y2xlCisJCQkJCS8vIGJlZ2lucyB3aXRoIHRoZSBmb2xsb3dpbmcgY3ljbGUsIHNvIGl0IHJlY2VpdmVzIGFsbCBjb25maWd1cmVkCisJCQkJCS8vIHR1cm5zIGFuZCBkb2VzIG5vdCBhZmZlY3Qgb25seSBhIHN1ZmZpeCBvZiB0aGUgY2l0eSBsaXN0LgorCQkJCQlpZiAoZ29sZGVuQWdlV2FzQWN0aXZlRm9yVGhpc1lpZWxkQ3ljbGUpIHsKKwkJCQkJCXBsYXllci5BZHZhbmNlR29sZGVuQWdlVHVybigpOworCQkJCQl9CisJCQkJCXBsYXllci5NYXliZVN0YXJ0R29sZGVuQWdlRnJvbVdvbmRlcnMoZ2FtZURhdGEpOwogCQkJCX0KIAogCQkJCS8vIE5vdyB0aGF0IHRoZSB0dXJuIGlzIGVuZGluZywgZG8gYWxsIHRoZSBib29ra2VlcGluZyBmb3IgdGhlCmRpZmYgLS1naXQgYS9FbmdpbmVUZXN0cy9Db21wYXRpYmlsaXR5L0NvbnF1ZXN0c1JlZmVyZW5jZVJ1bGVzVGVzdC5jcyBiL0VuZ2luZVRlc3RzL0NvbXBhdGliaWxpdHkvQ29ucXVlc3RzUmVmZXJlbmNlUnVsZXNUZXN0LmNzCmluZGV4IGIwM2QwNDUuLmYxNGNmNzUgMTAwNjQ0Ci0tLSBhL0VuZ2luZVRlc3RzL0NvbXBhdGliaWxpdHkvQ29ucXVlc3RzUmVmZXJlbmNlUnVsZXNUZXN0LmNzCisrKyBiL0VuZ2luZVRlc3RzL0NvbXBhdGliaWxpdHkvQ29ucXVlc3RzUmVmZXJlbmNlUnVsZXNUZXN0LmNzCkBAIC0xOTQsNCArMTk0LDE0IEBAIHB1YmxpYyBjbGFzcyBDb25xdWVzdHNSZWZlcmVuY2VSdWxlc1Rlc3QgewogCQlBc3NlcnQuRXF1YWwoMjAsIHJ1bGVzLkdvbGRlbkFnZUR1cmF0aW9uKTsKIAl9CiAKKwlbU2tpcHBhYmxlRmFjdF0KKwlwdWJsaWMgdm9pZCBEZWZhdWx0UnVsZXNFeHBvc2VHb2xkZW5BZ2VVbml0RmxhZ3MoKSB7CisJCUJpcURhdGEgYmlxID0gTG9hZFJlZmVyZW5jZUJpcSgpOworCQlQUlRPIHBhbnplciA9IGJpcS5QcnRvLlNpbmdsZSh1bml0ID0+IHVuaXQuTmFtZSA9PSAiUGFuemVyIik7CisJCVBSVE8gd2FycmlvciA9IGJpcS5QcnRvLlNpbmdsZSh1bml0ID0+IHVuaXQuTmFtZSA9PSAiV2FycmlvciIpOworCisJCUFzc2VydC5UcnVlKHBhbnplci5TdGFydHNHb2xkZW5BZ2UpOworCQlBc3NlcnQuRmFsc2Uod2Fycmlvci5TdGFydHNHb2xkZW5BZ2UpOworCX0KKwogfQpkaWZmIC0tZ2l0IGEvRW5naW5lVGVzdHMvQ29tcGF0aWJpbGl0eS9Gb3J0aWZpY2F0aW9uQ29tcGF0aWJpbGl0eVRlc3QuY3MgYi9FbmdpbmVUZXN0cy9Db21wYXRpYmlsaXR5L0ZvcnRpZmljYXRpb25Db21wYXRpYmlsaXR5VGVzdC5jcwpuZXcgZmlsZSBtb2RlIDEwMDY0NAppbmRleCAwMDAwMDAwLi42ZWVlZDg4Ci0tLSAvZGV2L251bGwKKysrIGIvRW5naW5lVGVzdHMvQ29tcGF0aWJpbGl0eS9Gb3J0aWZpY2F0aW9uQ29tcGF0aWJpbGl0eVRlc3QuY3MKQEAgLTAsMCArMSw2OCBAQAordXNpbmcgU3lzdGVtLkxpbnE7Cit1c2luZyBDN0VuZ2luZTsKK3VzaW5nIEM3R2FtZURhdGE7Cit1c2luZyBDN0dhbWVEYXRhLlNhdmU7Cit1c2luZyBYdW5pdDsKK3VzaW5nIHN0YXRpYyBDN0dhbWVEYXRhLlRpbGUuVGlsZU92ZXJsYXlzOworCituYW1lc3BhY2UgRW5naW5lVGVzdHMuQ29tcGF0aWJpbGl0eTsKKworLy8vIDxzdW1tYXJ5PgorLy8vIERpcmVjdCBiZWhhdmlvciBjaGVja3MgZm9yIHRoZSBzdG9jayBDaXYgSUlJIGZvcnRyZXNzIGFuZCBiYXJyaWNhZGUKKy8vLyBkZWZlbnNpdmUgbW9kaWZpZXJzIGRvY3VtZW50ZWQgYnkgdGhlIG9yaWdpbmFsIENpdmlsb3BlZGlhLgorLy8vIDwvc3VtbWFyeT4KK3B1YmxpYyBjbGFzcyBGb3J0aWZpY2F0aW9uQ29tcGF0aWJpbGl0eVRlc3QgeworCXByaXZhdGUgc3RhdGljIE1hcFVuaXQgTWFrZURlZmVuZGVyKHN0cmluZyBpbXByb3ZlbWVudEtleSkgeworCQlDN0dhbWVEYXRhLkdhbWVEYXRhIGdhbWVEYXRhID0gbmV3KCkgeworCQkJZ2FtZURpZmZpY3VsdHkgPSBuZXcgRGlmZmljdWx0eSgpLAorCQl9OworCQlFbmdpbmVTdG9yYWdlLkluaXRpYWxpemVHYW1lRGF0YUZvclRlc3RzKGdhbWVEYXRhKTsKKworCQlUZXJyYWluVHlwZSB0ZXJyYWluID0gbmV3KCkgeworCQkJS2V5ID0gInBsYWlucyIsCisJCQltb3ZlbWVudENvc3QgPSAxLAorCQkJZGVmZW5zZUJvbnVzID0gbmV3IFN0cmVuZ3RoQm9udXMoIlRlcnJhaW4iLCAwKSwKKwkJfTsKKwkJU2F2ZVRlcnJhaW5JbXByb3ZlbWVudCBzYXZlSW1wcm92ZW1lbnQgPSBTYXZlVGVycmFpbkltcHJvdmVtZW50LkNpdjNJbXByb3ZlbWVudHMoKQorCQkJLlNpbmdsZShpbXByb3ZlbWVudCA9PiBpbXByb3ZlbWVudC5rZXkgPT0gaW1wcm92ZW1lbnRLZXkpOworCQlUZXJyYWluSW1wcm92ZW1lbnQgaW1wcm92ZW1lbnQgPSBuZXcoCisJCQlzYXZlSW1wcm92ZW1lbnQsCisJCQlydWxlc0VuZ2luZTogbnVsbCwKKwkJCXJlc29sdmVUZXJyYWluVHlwZTogXyA9PiB0ZXJyYWluCisJCSk7CisJCVRpbGUgdGlsZSA9IG5ldyhJRC5Ob25lKCJ0aWxlIikpIHsKKwkJCWJhc2VUZXJyYWluVHlwZSA9IHRlcnJhaW4sCisJCQlvdmVybGF5VGVycmFpblR5cGUgPSB0ZXJyYWluLAorCQl9OworCQl0aWxlLm92ZXJsYXlzLkFkZChpbXByb3ZlbWVudCk7CisKKwkJUGxheWVyIHBsYXllciA9IG5ldygpIHsKKwkJCWNpdmlsaXphdGlvbiA9IG5ldyBDaXZpbGl6YXRpb24oIlJlZmVyZW5jZSBDaXZpbGl6YXRpb24iKSwKKwkJCWdvdmVybm1lbnQgPSBuZXcgR292ZXJubWVudCgpLAorCQl9OworCQlVbml0UHJvdG90eXBlIHByb3RvdHlwZSA9IG5ldygpIHsKKwkJCW5hbWUgPSAiUmVmZXJlbmNlIERlZmVuZGVyIiwKKwkJCWRlZmVuc2UgPSAyLAorCQkJbW92ZW1lbnQgPSAxLAorCQl9OworCQlyZXR1cm4gcHJvdG90eXBlLkdldEluc3RhbmNlKElELk5vbmUoInVuaXQiKSwgcHJvdG90eXBlLCBwbGF5ZXIsIGxvY2F0aW9uOiB0aWxlKTsKKwl9CisKKwlbRmFjdF0KKwlwdWJsaWMgdm9pZCBGb3J0cmVzc0FkZHNGaWZ0eVBlcmNlbnREZWZlbnNlKCkgeworCQlNYXBVbml0IGRlZmVuZGVyID0gTWFrZURlZmVuZGVyKEZPUlRSRVNTKTsKKworCQlkb3VibGUgc3RyZW5ndGggPSBkZWZlbmRlci5TdHJlbmd0aFZlcnN1cyhNYXBVbml0Lk5PTkUsIENvbWJhdFJvbGUuRGVmZW5zZSwgYXR0YWNrRGlyZWN0aW9uOiBudWxsKTsKKworCQlBc3NlcnQuRXF1YWwoMy4wLCBzdHJlbmd0aCwgcHJlY2lzaW9uOiA2KTsKKwl9CisKKwlbRmFjdF0KKwlwdWJsaWMgdm9pZCBCYXJyaWNhZGVBZGRzT25lSHVuZHJlZFBlcmNlbnREZWZlbnNlKCkgeworCQlNYXBVbml0IGRlZmVuZGVyID0gTWFrZURlZmVuZGVyKEJBUlJJQ0FERSk7CisKKwkJZG91YmxlIHN0cmVuZ3RoID0gZGVmZW5kZXIuU3RyZW5ndGhWZXJzdXMoTWFwVW5pdC5OT05FLCBDb21iYXRSb2xlLkRlZmVuc2UsIGF0dGFja0RpcmVjdGlvbjogbnVsbCk7CisKKwkJQXNzZXJ0LkVxdWFsKDQuMCwgc3RyZW5ndGgsIHByZWNpc2lvbjogNik7CisJfQorfQpkaWZmIC0tZ2l0IGEvRW5naW5lVGVzdHMvQ29tcGF0aWJpbGl0eS9Hb2xkZW5BZ2VDb21wYXRpYmlsaXR5VGVzdC5jcyBiL0VuZ2luZVRlc3RzL0NvbXBhdGliaWxpdHkvR29sZGVuQWdlQ29tcGF0aWJpbGl0eVRlc3QuY3MKbmV3IGZpbGUgbW9kZSAxMDA2NDQKaW5kZXggMDAwMDAwMC4uNGNkNzE4OAotLS0gL2Rldi9udWxsCisrKyBiL0VuZ2luZVRlc3RzL0NvbXBhdGliaWxpdHkvR29sZGVuQWdlQ29tcGF0aWJpbGl0eVRlc3QuY3MKQEAgLTAsMCArMSwxOTcgQEAKK3VzaW5nIFN5c3RlbS5Db2xsZWN0aW9ucy5HZW5lcmljOwordXNpbmcgQzdFbmdpbmU7Cit1c2luZyBDN0dhbWVEYXRhOwordXNpbmcgQzdHYW1lRGF0YS5TYXZlOwordXNpbmcgWHVuaXQ7CisKK25hbWVzcGFjZSBFbmdpbmVUZXN0cy5Db21wYXRpYmlsaXR5OworCisvLy8gPHN1bW1hcnk+CisvLy8gUHVibGljLUNJIGJlaGF2aW9yIGNvbnRyYWN0cyBmb3IgQ2l2aWxpemF0aW9uIElJSSBHb2xkZW4gQWdlcy4gVGhlIHRlc3RzCisvLy8gdXNlIHN5bnRoZXRpYyBydWxlcyBhbmQgZG8gbm90IHJlcXVpcmUgb3JpZ2luYWwgZ2FtZSBhc3NldHMuCisvLy8gPC9zdW1tYXJ5PgorcHVibGljIGNsYXNzIEdvbGRlbkFnZUNvbXBhdGliaWxpdHlUZXN0IHsKKwlwcml2YXRlIHN0YXRpYyAoQzdHYW1lRGF0YS5HYW1lRGF0YSBnYW1lRGF0YSwgUGxheWVyIHBsYXllcikgTWFrZVBsYXllcihpbnQgZHVyYXRpb24gPSAyMCkgeworCQlDN0dhbWVEYXRhLkdhbWVEYXRhIGdhbWVEYXRhID0gbmV3KGN1c3RvbVNlZWQ6IDEyMzQpIHsKKwkJCWdhbWVEaWZmaWN1bHR5ID0gbmV3IERpZmZpY3VsdHkoKSwKKwkJCXJ1bGVzID0gbmV3IFJ1bGVzIHsgR29s
+ryPoints/TurnHandling.cs
+@@ -73,8 +73,18 @@ namespace C7Engine {
+ 					// Note that we do growth after calculating citizen moods,
+ 					// to ensure that the player has a chance to deal with the
+ 					// unhappiness of a new citizen during their turn.
++					bool goldenAgeWasActiveForThisYieldCycle = player.IsGoldenAgeActive;
+ 					log.Information($"\n*** City growth/production for turn {gameData.turn}, player {player} ***");
+ 					player.HandleCityUpdates(gameData);
++
++					// A Golden Age triggered by combat applies to this yield cycle.
++					// A Golden Age triggered by a wonder completed during this cycle
++					// begins with the following cycle, so it receives all configured
++					// turns and does not affect only a suffix of the city list.
++					if (goldenAgeWasActiveForThisYieldCycle) {
++						player.AdvanceGoldenAgeTurn();
++					}
++					player.MaybeStartGoldenAgeFromWonders(gameData);
+ 				}
+ 
+ 				// Now that the turn is ending, do all the bookkeeping for the
+diff --git a/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs b/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs
+index b03d045..f14cf75 100644
+--- a/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs
++++ b/EngineTests/Compatibility/ConquestsReferenceRulesTest.cs
+@@ -194,4 +194,14 @@ public class ConquestsReferenceRulesTest {
+ 		Assert.Equal(20, rules.GoldenAgeDuration);
+ 	}
+ 
++	[SkippableFact]
++	public void DefaultRulesExposeGoldenAgeUnitFlags() {
++		BiqData biq = LoadReferenceBiq();
++		PRTO panzer = biq.Prto.Single(unit => unit.Name == "Panzer");
++		PRTO warrior = biq.Prto.Single(unit => unit.Name == "Warrior");
++
++		Assert.True(panzer.StartsGoldenAge);
++		Assert.False(warrior.StartsGoldenAge);
++	}
++
+ }
+diff --git a/EngineTests/Compatibility/FortificationCompatibilityTest.cs b/EngineTests/Compatibility/FortificationCompatibilityTest.cs
+new file mode 100644
+index 0000000..6eeed88
+--- /dev/null
++++ b/EngineTests/Compatibility/FortificationCompatibilityTest.cs
+@@ -0,0 +1,68 @@
++using System.Linq;
++using C7Engine;
++using C7GameData;
++using C7GameData.Save;
++using Xunit;
++using static C7GameData.Tile.TileOverlays;
++
++namespace EngineTests.Compatibility;
++
++/// <summary>
++/// Direct behavior checks for the stock Civ III fortress and barricade
++/// defensive modifiers documented by the original Civilopedia.
++/// </summary>
++public class FortificationCompatibilityTest {
++	private static MapUnit MakeDefender(string improvementKey) {
++		C7GameData.GameData gameData = new() {
++			gameDifficulty = new Difficulty(),
++		};
++		EngineStorage.InitializeGameDataForTests(gameData);
++
++		TerrainType terrain = new() {
++			Key = "plains",
++			movementCost = 1,
++			defenseBonus = new StrengthBonus("Terrain", 0),
++		};
++		SaveTerrainImprovement saveImprovement = SaveTerrainImprovement.Civ3Improvements()
++			.Single(improvement => improvement.key == improvementKey);
++		TerrainImprovement improvement = new(
++			saveImprovement,
++			rulesEngine: null,
++			resolveTerrainType: _ => terrain
++		);
++		Tile tile = new(ID.None("tile")) {
++			baseTerrainType = terrain,
++			overlayTerrainType = terrain,
++		};
++		tile.overlays.Add(improvement);
++
++		Player player = new() {
++			civilization = new Civilization("Reference Civilization"),
++			government = new Government(),
++		};
++		UnitPrototype prototype = new() {
++			name = "Reference Defender",
++			defense = 2,
++			movement = 1,
++		};
++		return prototype.GetInstance(ID.None("unit"), prototype, player, location: tile);
++	}
++
++	[Fact]
++	public void FortressAddsFiftyPercentDefense() {
++		MapUnit defender = MakeDefender(FORTRESS);
++
++		double strength = defender.StrengthVersus(MapUnit.NONE, CombatRole.Defense, attackDirection: null);
++
++		Assert.Equal(3.0, strength, precision: 6);
++	}
++
++	[Fact]
++	public void BarricadeAddsOneHundredPercentDefense() {
++		MapUnit defender = MakeDefender(BARRICADE);
++
++		double strength = defender.StrengthVersus(MapUnit.NONE, CombatRole.Defense, attackDirection: null);
++
++		Assert.Equal(4.0, strength, precision: 6);
++	}
++}
+diff --git a/EngineTests/Compatibility/GoldenAgeCompatibilityTest.cs b/EngineTests/Compatibility/GoldenAgeCompatibilityTest.cs
+new file mode 100644
+index 0000000..4cd7188
+--- /dev/null
++++ b/EngineTests/Compatibility/GoldenAgeCompatibilityTest.cs
+@@ -0,0 +1,197 @@
++using System.Collections.Generic;
++using C7Engine;
++using C7GameData;
++using C7GameData.Save;
++using Xunit;
++
++namespace EngineTests.Compatibility;
++
++/// <summary>
++/// Public-CI behavior contracts for Civilization III Golden Ages. The tests
++/// use synthetic rules and do not require original game assets.
++/// </summary>
++public class GoldenAgeCompatibilityTest {
++	private static (C7GameData.GameData gameData, Player player) MakePlayer(int duration = 20) {
++		C7GameData.GameData gameData = new(customSeed: 1234) {
++			gameDifficulty = new Difficulty(),
++			rules = new Rules { Gol

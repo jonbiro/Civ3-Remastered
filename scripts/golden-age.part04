@@ -1,1 +1,34 @@
-eSk7CisKKwkJQnVpbGRpbmcgaW5kdXN0cmlvdXNXb25kZXIgPSBNYWtlV29uZGVyKAorCQkJZ2FtZURhdGEsCisJCQkiSW5kdXN0cmlvdXMgV29uZGVyIiwKKwkJCUNpdmlsaXphdGlvbi5UcmFpdC5JbmR1c3RyaW91cworCQkpOworCQlCdWlsZGluZyByZWxpZ2lvdXNXb25kZXIgPSBNYWtlV29uZGVyKAorCQkJZ2FtZURhdGEsCisJCQkiUmVsaWdpb3VzIFdvbmRlciIsCisJCQlDaXZpbGl6YXRpb24uVHJhaXQuUmVsaWdpb3VzCisJCSk7CisKKwkJY2l0eS5BZGRCdWlsZGluZyhpbmR1c3RyaW91c1dvbmRlcik7CisJCUFzc2VydC5GYWxzZShwbGF5ZXIuTWF5YmVTdGFydEdvbGRlbkFnZUZyb21Xb25kZXJzKGdhbWVEYXRhKSk7CisKKwkJY2l0eS5BZGRCdWlsZGluZyhyZWxpZ2lvdXNXb25kZXIpOworCQlBc3NlcnQuVHJ1ZShwbGF5ZXIuTWF5YmVTdGFydEdvbGRlbkFnZUZyb21Xb25kZXJzKGdhbWVEYXRhKSk7CisJCUFzc2VydC5UcnVlKHBsYXllci5Jc0dvbGRlbkFnZUFjdGl2ZSk7CisJfQorCisJcHJpdmF0ZSBzdGF0aWMgQnVpbGRpbmcgTWFrZVdvbmRlcigKKwkJQzdHYW1lRGF0YS5HYW1lRGF0YSBnYW1lRGF0YSwKKwkJc3RyaW5nIG5hbWUsCisJCUNpdmlsaXphdGlvbi5UcmFpdCB0cmFpdAorCSkgeworCQlTYXZlQnVpbGRpbmcgc2F2ZSA9IG5ldygpIHsKKwkJCW5hbWUgPSBuYW1lLAorCQkJZ3JlYXRXb25kZXJQcm9wZXJ0aWVzID0gbmV3IFNhdmVCdWlsZGluZy5HcmVhdFdvbmRlclByb3BlcnRpZXMoKSwKKwkJCXRyYWl0cyA9IG5ldyBIYXNoU2V0PENpdmlsaXphdGlvbi5UcmFpdD4geyB0cmFpdCB9LAorCQl9OworCQlyZXR1cm4gbmV3IEJ1aWxkaW5nKHNhdmUsIGdhbWVEYXRhKTsKKwl9Cit9Cg==
+y);
++
++		Building industriousWonder = MakeWonder(
++			gameData,
++			"Industrious Wonder",
++			Civilization.Trait.Industrious
++		);
++		Building religiousWonder = MakeWonder(
++			gameData,
++			"Religious Wonder",
++			Civilization.Trait.Religious
++		);
++
++		city.AddBuilding(industriousWonder);
++		Assert.False(player.MaybeStartGoldenAgeFromWonders(gameData));
++
++		city.AddBuilding(religiousWonder);
++		Assert.True(player.MaybeStartGoldenAgeFromWonders(gameData));
++		Assert.True(player.IsGoldenAgeActive);
++	}
++
++	private static Building MakeWonder(
++		C7GameData.GameData gameData,
++		string name,
++		Civilization.Trait trait
++	) {
++		SaveBuilding save = new() {
++			name = name,
++			greatWonderProperties = new SaveBuilding.GreatWonderProperties(),
++			traits = new HashSet<Civilization.Trait> { trait },
++		};
++		return new Building(save, gameData);
++	}
++}
