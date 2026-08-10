@@ -1,0 +1,34 @@
+name: Temporary resistance compatibility patch
+
+on:
+  pull_request:
+    branches:
+      - agent/civ3-install-integration
+    paths:
+      - .github/workflows/temporary-resistance-patch.yml
+      - scripts/resistance-quelling.patch
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    if: github.head_ref == 'agent/civ3-reference-compatibility'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout pull request head
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+
+      - name: Apply resistance compatibility patch
+        run: |
+          git apply --check scripts/resistance-quelling.patch
+          git apply scripts/resistance-quelling.patch
+          git rm scripts/resistance-quelling.patch .github/workflows/temporary-resistance-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement data-driven Civ III resistance quelling"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
