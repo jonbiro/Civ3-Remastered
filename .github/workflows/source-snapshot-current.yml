@@ -16,12 +16,12 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Archive source
-        run: tar --exclude=.git -czf ../civ3-remastered-current.tar.gz .
+        run: git archive --format=tar.gz --output=civ3-remastered-current.tar.gz HEAD
 
       - name: Upload source snapshot
         uses: actions/upload-artifact@v4
         with:
           name: civ3-remastered-current
-          path: ../civ3-remastered-current.tar.gz
+          path: civ3-remastered-current.tar.gz
           if-no-files-found: error
           retention-days: 1
