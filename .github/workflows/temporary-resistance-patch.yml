@@ -6,7 +6,7 @@ on:
       - agent/civ3-install-integration
     paths:
       - .github/workflows/temporary-resistance-patch.yml
-      - scripts/resistance-quelling.patch
+      - scripts/resistance-quelling.patch.b64
 
 permissions:
   contents: write
@@ -24,9 +24,10 @@ jobs:
 
       - name: Apply resistance compatibility patch
         run: |
-          git apply --check scripts/resistance-quelling.patch
-          git apply scripts/resistance-quelling.patch
-          git rm scripts/resistance-quelling.patch .github/workflows/temporary-resistance-patch.yml
+          base64 --decode scripts/resistance-quelling.patch.b64 > /tmp/resistance-quelling.patch
+          git apply --check /tmp/resistance-quelling.patch
+          git apply /tmp/resistance-quelling.patch
+          git rm scripts/resistance-quelling.patch scripts/resistance-quelling.patch.b64 .github/workflows/temporary-resistance-patch.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
