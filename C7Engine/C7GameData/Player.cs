@@ -310,6 +310,7 @@ namespace C7GameData {
 			int refuseContactUntilTurn = currentTurn + new Random().Next(5, isSneakAttack ? 16 : 12);
 
 			DeclareWar(this, other, isSneakAttack, refuseContactUntilTurn);
+			EngineStorage.gameData.InvalidateCachedTradeNetwork();
 
 			// Whenever war is declared, re-evaluate priorities.
 			turnsUntilPriorityReevaluation = 0;
@@ -798,6 +799,10 @@ namespace C7GameData {
 			gold += lastGoldPerTurn;
 		}
 
+		public int QuellResistance(GameData gameData) {
+			return cities.Sum(city => city.QuellResistance(gameData));
+		}
+
 		public void HandleCityUpdates(GameData gameData) {
 			foreach (City c in cities) {
 				// Ensure borders expand before we assign the new citizen, so that
@@ -878,6 +883,10 @@ namespace C7GameData {
 		}
 
 		private static void TechImprovementCallback(Player player, Tech tech) {
+			if (tech.EnablesTradeOverSea || tech.EnablesTradeOverOcean) {
+				EngineStorage.gameData.InvalidateCachedTradeNetwork();
+			}
+
 			var terraforms = EngineStorage.gameData.Terraforms;
 			if (terraforms.Any(t => t.Improvement is { layer: TerrainImprovement.Layer.Roads } && t.RequiredTech == tech.id)) {
 				foreach (var city in player.cities) {

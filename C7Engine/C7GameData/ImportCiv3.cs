@@ -64,6 +64,7 @@ namespace C7GameData {
 			ImportTimeScale();
 			ImportRaces();
 			ImportCultureGroups();
+			ImportCultureRelationshipLevels();
 			ImportTechs();
 			ImportCiv3Resources();
 			ImportTerraforms();
@@ -427,6 +428,20 @@ namespace C7GameData {
 				}
 
 				save.Resources.Add(resource);
+			}
+		}
+
+		private void ImportCultureRelationshipLevels() {
+			BiqData theBiq = biq.Cult is null ? defaultBiq : biq;
+			foreach (CULT culture in theBiq.Cult) {
+				save.CultureRelationshipLevels.Add(new CultureRelationshipLevel {
+					name = culture.Name,
+					cultureRatioPercentage = culture.CultureRatioPercentage,
+					cultureRatioDenominator = culture.CultureRatioDenominator,
+					cultureRatioNumerator = culture.CultureRatioNumerator,
+					initialResistanceChance = culture.InitialResistanceChance,
+					continuedResistanceChance = culture.ContinuedResistanceChance,
+				});
 			}
 		}
 
@@ -1157,11 +1172,21 @@ namespace C7GameData {
 					if (ctzn.Type == 4) {  // Specialist
 						SaveCityResident scr = new();
 						scr.city = saveCity.id;
+						scr.tileWorked = new TileLocation();
 						scr.nationality = save.Civilizations[ctzn.Nationality].name;
 						scr.citizenType = save.CitizenTypes.Find(x => x.SpecialistIndex == ctzn.SpecialistType).Id;
 						saveCity.residents.Add(scr);
+					} else if (ctzn.Type == 3) {  // Resister
+						SaveCityResident scr = new();
+						scr.city = saveCity.id;
+						scr.tileWorked = new TileLocation();
+						scr.nationality = save.Civilizations[ctzn.Nationality].name;
+						scr.citizenType = save.CitizenTypes.Find(x => x.IsDefaultCitizen).Id;
+						scr.isResisting = true;
+						saveCity.residents.Add(scr);
 					} else if (ctzn.TileWorked == 0) {
-						// TODO: handle resistors
+						// Non-working non-specialists other than explicitly identified
+						// resisters remain unknown and are not inferred here.
 					} else {
 						SaveCityResident scr = new();
 						scr.city = saveCity.id;
@@ -1590,6 +1615,8 @@ namespace C7GameData {
 				(bldg.AllowsCitySize3, SaveBuilding.Flag.AllowsCitySize3),
 				(bldg.DoublesCityGrowthRate, SaveBuilding.Flag.DoublesCityGrowthRate),
 				(bldg.TreasuryEarnsInterest, SaveBuilding.Flag.TreasuryEarnsInterest),
+				(bldg.AllowsWaterTrade, SaveBuilding.Flag.AllowsWaterTrade),
+				(bldg.AllowsAirTrade, SaveBuilding.Flag.AllowsAirTrade),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);
@@ -1763,18 +1790,7 @@ namespace C7GameData {
 				TECH t = theBiq.Tech[i];
 				SaveTech st = save.Techs[i];
 
-				if (t.Prerequisite1 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite1].id);
-				}
-				if (t.Prerequisite2 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite2].id);
-				}
-				if (t.Prerequisite3 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite3].id);
-				}
-				if (t.Prerequisite4 > -1) {
-					st.Prerequisites.Add(save.Techs[t.Prerequisite3].id);
-				}
+				AddTechPrerequisites(t, st, save.Techs);
 			}
 
 			// Now that we have ids for all the techs, distribute the free techs
@@ -1810,11 +1826,28 @@ namespace C7GameData {
 			}
 		}
 
+		internal static void AddTechPrerequisites(TECH tech, SaveTech destination, IReadOnlyList<SaveTech> techs) {
+			int[] prerequisiteIndexes = {
+				tech.Prerequisite1,
+				tech.Prerequisite2,
+				tech.Prerequisite3,
+				tech.Prerequisite4,
+			};
+
+			foreach (int prerequisiteIndex in prerequisiteIndexes) {
+				if (prerequisiteIndex > -1) {
+					destination.Prerequisites.Add(techs[prerequisiteIndex].id);
+				}
+			}
+		}
+
 		private static IEnumerable<SaveTech.Flag> LoadTechFlags(TECH t) {
 			return new[] {
 				(t.BonusTechToFirstCivThatResearches, SaveTech.Flag.BonusTechToFirstCivThatResearches),
 				(t.EnablesBridges, SaveTech.Flag.EnablesBridges),
 				(t.DoublesWealthProduction, SaveTech.Flag.DoublesWealthProduction),
+				(t.EnablesTradeOverSea, SaveTech.Flag.EnablesTradeOverSea),
+				(t.EnablesTradeOverOcean, SaveTech.Flag.EnablesTradeOverOcean),
 			}
 			.Where(t => t.Item1)
 			.Select(t => t.Item2);
@@ -1949,8 +1982,23 @@ namespace C7GameData {
 				g.freeUnitsPerCity = govt.FreeUnitsPerCity;
 				g.freeUnitsPerMetropolis = govt.FreeUnitsPerMetropolis;
 				g.unitCost = govt.UnitCost;
+				g.assimilationChance = govt.AssimilationChance;
+				g.warWeariness = (Government.WarWearinessLevel)govt.WarWeariness;
 
 				save.Governments.Add(g);
+			}
+
+			// The rectangular BIQ matrix is indexed by the conqueror's
+			// government first and the resisting civilization's government
+			// second. Keep names as stable serialized keys.
+			if (theBiq.GovtGovt != null) {
+				for (int conquerorIndex = 0; conquerorIndex < save.Governments.Count; ++conquerorIndex) {
+					Government conqueror = save.Governments[conquerorIndex];
+					for (int foreignIndex = 0; foreignIndex < save.Governments.Count; ++foreignIndex) {
+						conqueror.resistanceModifierByForeignGovernment[save.Governments[foreignIndex].name]
+							= theBiq.GovtGovt[conquerorIndex, foreignIndex].ResistanceModifier;
+					}
+				}
 			}
 		}
 
@@ -1992,6 +2040,7 @@ namespace C7GameData {
 			save.Rules.ForestValueInShields = rule.ForestValueInShields;
 			save.Rules.CitizenValueInShields = rule.CitizenValueInShields;
 			save.Rules.TurnPenaltyForEachHurrySacrifice = rule.TurnPenaltyForEachHurrySacrifice;
+			save.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
 			save.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
 			if (rule.StartUnitType1 >= 0) {
 				save.Rules.StartUnitType1 = theBiq.Prto[rule.StartUnitType1].Name;

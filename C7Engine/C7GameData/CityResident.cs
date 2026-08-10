@@ -7,6 +7,10 @@ namespace C7GameData {
 		public Civilization nationality;
 		public City city;
 
+		// Resisters in captured cities do not work and suppress the normal
+		// city-size defensive bonus until resistance is quelled.
+		public bool isResisting;
+
 		// Only relevant if citizenType.IsDefaultCitizen == true
 		public enum Mood {
 			Happy,

@@ -1,0 +1,197 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using EngineTests.Utils;
+using QueryCiv3;
+using QueryCiv3.Biq;
+using Xunit;
+
+namespace EngineTests.Compatibility;
+
+/// <summary>
+/// Compatibility contracts for the stock Civilization III: Conquests ruleset.
+///
+/// These tests intentionally do not embed or redistribute the original BIQ.
+/// They run only when a contributor has a validated Civilization III Complete
+/// installation available locally through CIV3_HOME or normal install discovery.
+/// Expected values are independently documented by the original Conquests text
+/// data and recorded in docs/compatibility/CONQUESTS_REFERENCE.md.
+/// </summary>
+public class ConquestsReferenceRulesTest {
+	private static BiqData LoadReferenceBiq() {
+		Skip.If(
+			Civ3TestData.ShouldSkipCiv3DependentTests(),
+			"No validated Civilization III Complete install found."
+		);
+
+		Civ3Installation installation = Civ3InstallationProbe.TryOpen(Civ3Location.GetCiv3Path());
+		Assert.NotNull(installation);
+		return BiqData.LoadFile(installation.ConquestsBiqPath);
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeExpectedDifficultyContentCitizens() {
+		BiqData biq = LoadReferenceBiq();
+		Dictionary<string, int> expected = new(StringComparer.OrdinalIgnoreCase) {
+			["Chieftain"] = 4,
+			["Warlord"] = 3,
+			["Regent"] = 2,
+			["Monarch"] = 2,
+			["Emperor"] = 1,
+			["Demigod"] = 1,
+			["Deity"] = 1,
+			["Sid"] = 1,
+		};
+
+		Assert.NotNull(biq.Diff);
+		Assert.Equal(expected.Count, biq.Diff.Length);
+		foreach ((string name, int contentCitizens) in expected) {
+			DIFF difficulty = biq.Diff.Single(d =>
+				string.Equals(d.Name, name, StringComparison.OrdinalIgnoreCase));
+			Assert.Equal(contentCitizens, difficulty.NumberOfCitizensBornContent);
+		}
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeExpectedGovernmentUnitSupport() {
+		BiqData biq = LoadReferenceBiq();
+		Dictionary<string, (int town, int city, int metropolis)> expected = new(StringComparer.OrdinalIgnoreCase) {
+			["Anarchy"] = (0, 0, 0),
+			["Despotism"] = (4, 4, 4),
+			["Monarchy"] = (2, 4, 8),
+			["Republic"] = (1, 3, 4),
+			["Feudalism"] = (5, 2, 1),
+			["Communism"] = (6, 6, 6),
+			["Fascism"] = (4, 7, 10),
+			["Democracy"] = (0, 0, 0),
+		};
+
+		Assert.NotNull(biq.Govt);
+		Assert.Equal(expected.Count, biq.Govt.Length);
+		foreach ((string name, (int town, int city, int metropolis) support) in expected) {
+			GOVT government = biq.Govt.Single(g =>
+				string.Equals(g.Name, name, StringComparison.OrdinalIgnoreCase));
+			Assert.Equal(support.town, government.FreeUnitsPerTown);
+			Assert.Equal(support.city, government.FreeUnitsPerCity);
+			Assert.Equal(support.metropolis, government.FreeUnitsPerMetropolis);
+		}
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeExpectedTerrainDefenseBonuses() {
+		BiqData biq = LoadReferenceBiq();
+		Dictionary<string, int> expected = new(StringComparer.OrdinalIgnoreCase) {
+			["Desert"] = 10,
+			["Plains"] = 10,
+			["Grassland"] = 10,
+			["Tundra"] = 10,
+			["Flood Plain"] = 10,
+			["Hills"] = 50,
+			["Mountains"] = 100,
+			["Forest"] = 25,
+			["Jungle"] = 25,
+			["Marsh"] = 20,
+			["Volcano"] = 80,
+			["Coast"] = 10,
+			["Sea"] = 10,
+			["Ocean"] = 10,
+		};
+
+		Assert.NotNull(biq.Terr);
+		foreach ((string name, int defenseBonus) in expected) {
+			TERR terrain = biq.Terr.Single(t =>
+				string.Equals(t.Name, name, StringComparison.OrdinalIgnoreCase));
+			Assert.Equal(defenseBonus, terrain.DefenseBonus);
+		}
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeExpectedGlobalDefenseBonuses() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Rule);
+		RULE rule = Assert.Single(biq.Rule);
+
+		Assert.Equal(25, rule.FortificationsDefensiveBonus);
+		Assert.Equal(25, rule.RiverDefensiveBonus);
+		Assert.Equal(50, rule.TownDefenseBonus);
+		Assert.Equal(50, rule.CityDefenseBonus);
+		Assert.Equal(100, rule.MetropolisDefenseBonus);
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeExpectedExperienceLevels() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Expr);
+		Assert.Equal(4, biq.Expr.Length);
+		Assert.Equal(
+			new[] { "Conscript", "Regular", "Veteran", "Elite" },
+			biq.Expr.Select(level => level.Name).ToArray()
+		);
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeTwentySevenNaturalResources() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Good);
+		Assert.Equal(27, biq.Good.Length);
+	}
+	[SkippableFact]
+	public void DefaultRulesExposeResistanceCultureBands() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Cult);
+
+		(string name, int ratio, int initial, int continued)[] expected = {
+			("in awe of", 300, 40, 30),
+			("admirers of", 200, 50, 40),
+			("impressed with", 100, 60, 50),
+			("unimpressed by", 75, 70, 60),
+			("dismissive of", 50, 80, 70),
+			("disdainful of", 33, 90, 80),
+		};
+
+		Assert.Equal(expected.Length, biq.Cult.Length);
+		for (int i = 0; i < expected.Length; ++i) {
+			Assert.Equal(expected[i].name, biq.Cult[i].Name);
+			Assert.Equal(expected[i].ratio, biq.Cult[i].CultureRatioPercentage);
+			Assert.Equal(expected[i].initial, biq.Cult[i].InitialResistanceChance);
+			Assert.Equal(expected[i].continued, biq.Cult[i].ContinuedResistanceChance);
+		}
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeResistanceGovernmentMatrixAndMilitaryLaw() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Govt);
+		Assert.NotNull(biq.GovtGovt);
+
+		int republic = Array.FindIndex(biq.Govt, government => government.Name == "Republic");
+		int monarchy = Array.FindIndex(biq.Govt, government => government.Name == "Monarchy");
+		int democracy = Array.FindIndex(biq.Govt, government => government.Name == "Democracy");
+		int communism = Array.FindIndex(biq.Govt, government => government.Name == "Communism");
+		int anarchy = Array.FindIndex(biq.Govt, government => government.Name == "Anarchy");
+
+		// The matrix is indexed by conqueror government, then the government
+		// of the resisting civilization. These two +5 exceptions are part of
+		// the stock Conquests rules.
+		Assert.Equal(5, biq.GovtGovt[republic, monarchy].ResistanceModifier);
+		Assert.Equal(5, biq.GovtGovt[democracy, communism].ResistanceModifier);
+		Assert.Equal(-5, biq.GovtGovt[democracy, anarchy].ResistanceModifier);
+
+		Assert.All(biq.Diff, difficulty => Assert.Equal(1, difficulty.MilitaryLaw));
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeGovernmentWarWearinessAndGoldenAgeDuration() {
+		BiqData biq = LoadReferenceBiq();
+		GOVT republic = biq.Govt.Single(government => government.Name == "Republic");
+		GOVT democracy = biq.Govt.Single(government => government.Name == "Democracy");
+		GOVT monarchy = biq.Govt.Single(government => government.Name == "Monarchy");
+		RULE rules = Assert.Single(biq.Rule);
+
+		Assert.Equal(1, republic.WarWeariness);
+		Assert.Equal(2, democracy.WarWeariness);
+		Assert.Equal(0, monarchy.WarWeariness);
+		Assert.Equal(20, rules.GoldenAgeDuration);
+	}
+
+}

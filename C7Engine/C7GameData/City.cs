@@ -359,7 +359,9 @@ namespace C7GameData {
 
 			// Handle the city starving.
 			if (foodStored < 0) {
-				RemoveLastCitizen();
+				// Civilization III removes resisters before productive citizens
+				// when starvation reduces a captured city's population.
+				RemoveCitizenForStarvation();
 				foodStored = 0;
 				return;
 			}
@@ -453,13 +455,17 @@ namespace C7GameData {
 		public IEnumerable<StrengthBonus> GetDefenseBonuses() {
 			GameData gD = EngineStorage.gameData;
 
-			// Cities give defense bonuses based on their size.
-			if (residents.Count > gD.rules.MaximumLevel2CitySize) {
-				yield return gD.cityLevel3DefenseBonus;
-			} else if (residents.Count > gD.rules.MaximumLevel1CitySize) {
-				yield return gD.cityLevel2DefenseBonus;
-			} else {
-				yield return gD.cityLevel1DefenseBonus;
+			// Civ III suppresses the normal settlement-size defensive bonus while
+			// any citizens in a captured city are still resisting. Terrain and
+			// building bonuses are handled separately and remain applicable.
+			if (!residents.Any(r => r.isResisting)) {
+				if (residents.Count > gD.rules.MaximumLevel2CitySize) {
+					yield return gD.cityLevel3DefenseBonus;
+				} else if (residents.Count > gD.rules.MaximumLevel1CitySize) {
+					yield return gD.cityLevel2DefenseBonus;
+				} else {
+					yield return gD.cityLevel1DefenseBonus;
+				}
 			}
 
 			bool isTown = residents.Count <= gD.rules.MaximumLevel1CitySize;
@@ -624,13 +630,19 @@ namespace C7GameData {
 		}
 
 		public int FoodConsumedPerTurn() {
-			// TODO: exclude resisters in the future.
-			return residents.Count * 2;
+			// Civ III resisters refuse to work but also consume no food while
+			// resistance continues.
+			return residents.Count(resident => !resident.isResisting) * 2;
 		}
 
 
 		private void RemoveLastCitizen() {
 			RemoveCitizenAt(residents.Count - 1);
+		}
+
+		private void RemoveCitizenForStarvation() {
+			int resisterIndex = residents.FindLastIndex(resident => resident.isResisting);
+			RemoveCitizenAt(resisterIndex >= 0 ? resisterIndex : residents.Count - 1);
 		}
 
 		public void RemoveRandomCitizen() {
@@ -714,9 +726,15 @@ namespace C7GameData {
 				year = 1, // TODO: Implement in-game year tracking
 				totalCulture = 0
 			});
+			if (building.allowsWaterTrade || building.allowsAirTrade) {
+				EngineStorage.gameData.InvalidateCachedTradeNetwork();
+			}
 		}
 		public void RemoveBuilding(CityBuilding building) {
 			constructed_buildings.Remove(building);
+			if (building.building.allowsWaterTrade || building.building.allowsAirTrade) {
+				EngineStorage.gameData.InvalidateCachedTradeNetwork();
+			}
 		}
 
 		public void AddUnit(UnitPrototype proto, GameData gameData) {
@@ -775,7 +793,7 @@ namespace C7GameData {
 		}
 
 		// See https://forums.civfanatics.com/threads/everything-about-corruption-c3c-edition.76619/
-		private float CalculateDistanceCorruption(int numAntiCorruptionBuildings) {
+		private float CalculateDistanceCorruption(GameData gameData, int numAntiCorruptionBuildings) {
 			float maxD = (location.map.numTilesWide + location.map.numTilesTall) / 4;
 
 			float distanceToPalace = owner.citiesWithCorruptionWonders.Min(x => location.RankDistanceTo(x.location));
@@ -783,9 +801,8 @@ namespace C7GameData {
 				distanceToPalace = maxD / 4;
 			}
 
-			// TODO: Update this once we track trade networks.
-			bool connectedTocapital = false;
-			float tradeFactor = connectedTocapital ? 1.0f : 5.0f/4.0f;
+			bool connectedToCapital = gameData.GetTradeNetwork().ConnectedToCapital(owner, this);
+			float tradeFactor = connectedToCapital ? 1.0f : 5.0f/4.0f;
 
 			float govtFactor = owner.government.corruptionType switch {
 				Government.CorruptionType.Minimal => 3.0f/4.0f,
@@ -829,7 +846,7 @@ namespace C7GameData {
 			// TODO: Handle the SPHQ.
 			int numCorruptionReducingSmallWondersInCity = buildings.Count(x => x.building.isForbiddenPalace);
 
-			corruption = CalculateDistanceCorruption(numAntiCorruptionBuildings)
+			corruption = CalculateDistanceCorruption(gameData, numAntiCorruptionBuildings)
 					+ CalculateRankCorruption(gameData, numAntiCorruptionBuildings);
 			// TODO: apply policeman modifiers, before applying the max
 
@@ -840,6 +857,70 @@ namespace C7GameData {
 				.9f - (.1f * numAntiCorruptionBuildings + .7f * numCorruptionReducingSmallWondersInCity));
 			corruption = Math.Max(corruption, 0);
 			corruption = Math.Min(corruption, maxCorruption);
+		}
+
+		private Player PlayerForNationality(GameData gameData, Civilization nationality) {
+			return gameData.players.FirstOrDefault(player => player.civilization == nationality);
+		}
+
+		private void EndResistance(GameData gameData, CityResident resident) {
+			resident.isResisting = false;
+
+			// Resisters imported from Civ III saves are not assigned to a tile.
+			// Once resistance ends, let the normal city governor put the citizen
+			// back to work or convert them to a specialist if no tile is free.
+			if (resident.citizenType.IsDefaultCitizen && resident.tileWorked == Tile.NONE) {
+				C7Engine.AI.CityTileAssignmentAI.AssignNewCitizenToTile(gameData, resident);
+			}
+		}
+
+		/// <summary>
+		/// Performs Civilization III's per-turn resistance continuation check.
+		/// Peace with a resister's mother country ends that citizen's
+		/// resistance. During war, each resister rolls against the imported
+		/// culture/government chance, with the number that may be quelled capped
+		/// by qualifying ground combat units and the difficulty's MilitaryLaw.
+		/// </summary>
+		/// <returns>The number of citizens whose resistance ended.</returns>
+		public int QuellResistance(GameData gameData) {
+			List<CityResident> resisters = residents.Where(resident => resident.isResisting).ToList();
+			if (resisters.Count == 0) {
+				return 0;
+			}
+
+			int quelled = 0;
+			List<(CityResident resident, Player sourcePlayer)> wartimeResisters = new();
+			foreach (CityResident resident in resisters) {
+				Player sourcePlayer = PlayerForNationality(gameData, resident.nationality);
+				if (sourcePlayer != null && owner.IsAtPeaceWith(sourcePlayer)) {
+					EndResistance(gameData, resident);
+					++quelled;
+				} else {
+					wartimeResisters.Add((resident, sourcePlayer));
+				}
+			}
+
+			int militaryQuellLimit = ResistanceRules.MaximumQuelledByGarrison(gameData, this);
+			int quelledByMilitary = 0;
+			foreach ((CityResident resident, Player sourcePlayer) in wartimeResisters) {
+				if (quelledByMilitary >= militaryQuellLimit) {
+					break;
+				}
+
+				int continuedResistanceChance = ResistanceRules.ResistanceChance(
+					gameData,
+					owner,
+					sourcePlayer,
+					continuedResistance: true
+				);
+				if (GameData.rng.Next(100) >= continuedResistanceChance) {
+					EndResistance(gameData, resident);
+					++quelledByMilitary;
+					++quelled;
+				}
+			}
+
+			return quelled;
 		}
 
 		// Does the per turn culture updating for the city and returns whether
@@ -860,11 +941,11 @@ namespace C7GameData {
 		// based on the difficulty level, and after that all citizens are born
 		// unhappy. Specialists and resisters are excluded from this.
 		private void InitializeMoodsForDifficulty(Difficulty gameDifficulty) {
-			int numLaborers = residents.Count(x => x.citizenType.IsDefaultCitizen);
+			int numLaborers = residents.Count(x => x.citizenType.IsDefaultCitizen && !x.isResisting);
 			int content = Math.Min(gameDifficulty.NumberOfCitizensBornContent, numLaborers);
 
 			foreach (CityResident r in residents) {
-				if (!r.citizenType.IsDefaultCitizen) {
+				if (!r.citizenType.IsDefaultCitizen || r.isResisting) {
 					continue;
 				}
 
@@ -883,7 +964,7 @@ namespace C7GameData {
 			int result = 0;
 
 			foreach (CityResident r in residents) {
-				if (!r.citizenType.IsDefaultCitizen) {
+				if (!r.citizenType.IsDefaultCitizen || r.isResisting) {
 					continue;
 				}
 
@@ -1043,6 +1124,9 @@ namespace C7GameData {
 			int happyCount = 0;
 			int unhappyCount = 0;
 			foreach (CityResident cr in residents) {
+				if (!cr.citizenType.IsDefaultCitizen || cr.isResisting) {
+					continue;
+				}
 				if (cr.mood == CityResident.Mood.Happy) { ++happyCount; }
 				if (cr.mood == CityResident.Mood.Unhappy) { ++unhappyCount; }
 			}

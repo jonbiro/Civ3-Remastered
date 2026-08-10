@@ -147,6 +147,7 @@ public class PlayerRelationship {
 			0, null, gameData.rules.DefaultDealDuration, gameData.turn, null);
 
 		RegisterMultiTurnDeal(left, right, mtd);
+		gameData.InvalidateCachedTradeNetwork();
 
 		left.playerRelationships[right.id].refuseContactUntilTurn = -1;
 		right.playerRelationships[left.id].refuseContactUntilTurn = -1;

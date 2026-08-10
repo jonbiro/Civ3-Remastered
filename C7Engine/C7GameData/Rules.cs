@@ -6,6 +6,7 @@ namespace C7GameData {
 		public int ForestValueInShields;
 		public int CitizenValueInShields;
 		public int TurnPenaltyForEachHurrySacrifice;
+		public int GoldenAgeDuration;
 		public int MaximumLevel1CitySize;
 		public int MaximumLevel2CitySize;
 		public int FoodNeededToGrowForLevel1Cities = 20;

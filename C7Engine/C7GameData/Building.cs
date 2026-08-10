@@ -44,6 +44,8 @@ namespace C7GameData {
 		public StrengthBonus? combatDefenseBonus;
 		public bool providesVeteranGroundUnits;
 		public bool treasuryEarnsInterest;
+		public bool allowsWaterTrade;
+		public bool allowsAirTrade;
 
 		public int culturePerTurn = 0;
 		public int maintenanceCost = 0;
@@ -96,6 +98,8 @@ namespace C7GameData {
 			onlyUsefulInTowns = building.flags.Contains(SaveBuilding.Flag.CanOnlyBeBuiltInTowns);
 			providesVeteranGroundUnits = building.flags.Contains(SaveBuilding.Flag.VeteranGroundUnits);
 			treasuryEarnsInterest = building.flags.Contains(SaveBuilding.Flag.TreasuryEarnsInterest);
+			allowsWaterTrade = building.flags.Contains(SaveBuilding.Flag.AllowsWaterTrade);
+			allowsAirTrade = building.flags.Contains(SaveBuilding.Flag.AllowsAirTrade);
 
 			if (building.greatWonderProperties != null) {
 				greatWonderProperties = new();
