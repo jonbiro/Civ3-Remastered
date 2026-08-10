@@ -17,7 +17,7 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Capital connectivity feeding distance corruption
 - Per-turn resistance continuation and quelling, including peace, culture bands, government-pair modifiers, garrison eligibility, difficulty limits, food consumption, and starvation priority
 
-## Imported but not yet behavior-complete
+## Imported and available, but not yet behavior-complete
 
 - Government war-weariness level
 - Government assimilation chance
