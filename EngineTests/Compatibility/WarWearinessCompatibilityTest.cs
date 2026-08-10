@@ -129,7 +129,7 @@ public class WarWearinessCompatibilityTest {
 	[Fact]
 	public void DirectDeclarationGivesDefenderWarHappiness() {
 		var (gameData, aggressor, defender, _, _) = MakeState();
-		MultiTurnDeal peace = PlayerRelationship.DEFAULT_PEACE;
+		MultiTurnDeal peace = new(DealType.DiplomaticAgreement, DealSubType.Peace, DealDetails.Exchange);
 		aggressor.playerRelationships[defender.id].multiTurnDeals.Add(peace);
 		defender.playerRelationships[aggressor.id].multiTurnDeals.Add(peace);
 
