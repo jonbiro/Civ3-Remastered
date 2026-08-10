@@ -64,6 +64,7 @@ namespace C7GameData {
 			ImportTimeScale();
 			ImportRaces();
 			ImportCultureGroups();
+			ImportCultureRelationshipLevels();
 			ImportTechs();
 			ImportCiv3Resources();
 			ImportTerraforms();
@@ -427,6 +428,20 @@ namespace C7GameData {
 				}
 
 				save.Resources.Add(resource);
+			}
+		}
+
+		private void ImportCultureRelationshipLevels() {
+			BiqData theBiq = biq.Cult is null ? defaultBiq : biq;
+			foreach (CULT culture in theBiq.Cult) {
+				save.CultureRelationshipLevels.Add(new CultureRelationshipLevel {
+					name = culture.Name,
+					cultureRatioPercentage = culture.CultureRatioPercentage,
+					cultureRatioDenominator = culture.CultureRatioDenominator,
+					cultureRatioNumerator = culture.CultureRatioNumerator,
+					initialResistanceChance = culture.InitialResistanceChance,
+					continuedResistanceChance = culture.ContinuedResistanceChance,
+				});
 			}
 		}
 
@@ -1967,8 +1982,23 @@ namespace C7GameData {
 				g.freeUnitsPerCity = govt.FreeUnitsPerCity;
 				g.freeUnitsPerMetropolis = govt.FreeUnitsPerMetropolis;
 				g.unitCost = govt.UnitCost;
+				g.assimilationChance = govt.AssimilationChance;
+				g.warWeariness = (Government.WarWearinessLevel)govt.WarWeariness;
 
 				save.Governments.Add(g);
+			}
+
+			// The rectangular BIQ matrix is indexed by the conqueror's
+			// government first and the resisting civilization's government
+			// second. Keep names as stable serialized keys.
+			if (theBiq.GovtGovt != null) {
+				for (int conquerorIndex = 0; conquerorIndex < save.Governments.Count; ++conquerorIndex) {
+					Government conqueror = save.Governments[conquerorIndex];
+					for (int foreignIndex = 0; foreignIndex < save.Governments.Count; ++foreignIndex) {
+						conqueror.resistanceModifierByForeignGovernment[save.Governments[foreignIndex].name]
+							= theBiq.GovtGovt[conquerorIndex, foreignIndex].ResistanceModifier;
+					}
+				}
 			}
 		}
 
@@ -2010,6 +2040,7 @@ namespace C7GameData {
 			save.Rules.ForestValueInShields = rule.ForestValueInShields;
 			save.Rules.CitizenValueInShields = rule.CitizenValueInShields;
 			save.Rules.TurnPenaltyForEachHurrySacrifice = rule.TurnPenaltyForEachHurrySacrifice;
+			save.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
 			save.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
 			if (rule.StartUnitType1 >= 0) {
 				save.Rules.StartUnitType1 = theBiq.Prto[rule.StartUnitType1].Name;

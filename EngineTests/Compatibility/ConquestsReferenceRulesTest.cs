@@ -135,4 +135,63 @@ public class ConquestsReferenceRulesTest {
 		Assert.NotNull(biq.Good);
 		Assert.Equal(27, biq.Good.Length);
 	}
+	[SkippableFact]
+	public void DefaultRulesExposeResistanceCultureBands() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Cult);
+
+		(string name, int ratio, int initial, int continued)[] expected = {
+			("in awe of", 300, 40, 30),
+			("admirers of", 200, 50, 40),
+			("impressed with", 100, 60, 50),
+			("unimpressed by", 75, 70, 60),
+			("dismissive of", 50, 80, 70),
+			("disdainful of", 33, 90, 80),
+		};
+
+		Assert.Equal(expected.Length, biq.Cult.Length);
+		for (int i = 0; i < expected.Length; ++i) {
+			Assert.Equal(expected[i].name, biq.Cult[i].Name);
+			Assert.Equal(expected[i].ratio, biq.Cult[i].CultureRatioPercentage);
+			Assert.Equal(expected[i].initial, biq.Cult[i].InitialResistanceChance);
+			Assert.Equal(expected[i].continued, biq.Cult[i].ContinuedResistanceChance);
+		}
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeResistanceGovernmentMatrixAndMilitaryLaw() {
+		BiqData biq = LoadReferenceBiq();
+		Assert.NotNull(biq.Govt);
+		Assert.NotNull(biq.GovtGovt);
+
+		int republic = Array.FindIndex(biq.Govt, government => government.Name == "Republic");
+		int monarchy = Array.FindIndex(biq.Govt, government => government.Name == "Monarchy");
+		int democracy = Array.FindIndex(biq.Govt, government => government.Name == "Democracy");
+		int communism = Array.FindIndex(biq.Govt, government => government.Name == "Communism");
+		int anarchy = Array.FindIndex(biq.Govt, government => government.Name == "Anarchy");
+
+		// The matrix is indexed by conqueror government, then the government
+		// of the resisting civilization. These two +5 exceptions are part of
+		// the stock Conquests rules.
+		Assert.Equal(5, biq.GovtGovt[republic, monarchy].ResistanceModifier);
+		Assert.Equal(5, biq.GovtGovt[democracy, communism].ResistanceModifier);
+		Assert.Equal(-5, biq.GovtGovt[democracy, anarchy].ResistanceModifier);
+
+		Assert.All(biq.Diff, difficulty => Assert.Equal(1, difficulty.MilitaryLaw));
+	}
+
+	[SkippableFact]
+	public void DefaultRulesExposeGovernmentWarWearinessAndGoldenAgeDuration() {
+		BiqData biq = LoadReferenceBiq();
+		GOVT republic = biq.Govt.Single(government => government.Name == "Republic");
+		GOVT democracy = biq.Govt.Single(government => government.Name == "Democracy");
+		GOVT monarchy = biq.Govt.Single(government => government.Name == "Monarchy");
+		RULE rules = Assert.Single(biq.Rule);
+
+		Assert.Equal(1, republic.WarWeariness);
+		Assert.Equal(2, democracy.WarWeariness);
+		Assert.Equal(0, monarchy.WarWeariness);
+		Assert.Equal(20, rules.GoldenAgeDuration);
+	}
+
 }

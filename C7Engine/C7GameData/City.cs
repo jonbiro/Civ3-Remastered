@@ -359,7 +359,9 @@ namespace C7GameData {
 
 			// Handle the city starving.
 			if (foodStored < 0) {
-				RemoveLastCitizen();
+				// Civilization III removes resisters before productive citizens
+				// when starvation reduces a captured city's population.
+				RemoveCitizenForStarvation();
 				foodStored = 0;
 				return;
 			}
@@ -628,13 +630,19 @@ namespace C7GameData {
 		}
 
 		public int FoodConsumedPerTurn() {
-			// TODO: exclude resisters in the future.
-			return residents.Count * 2;
+			// Civ III resisters refuse to work but also consume no food while
+			// resistance continues.
+			return residents.Count(resident => !resident.isResisting) * 2;
 		}
 
 
 		private void RemoveLastCitizen() {
 			RemoveCitizenAt(residents.Count - 1);
+		}
+
+		private void RemoveCitizenForStarvation() {
+			int resisterIndex = residents.FindLastIndex(resident => resident.isResisting);
+			RemoveCitizenAt(resisterIndex >= 0 ? resisterIndex : residents.Count - 1);
 		}
 
 		public void RemoveRandomCitizen() {
@@ -849,6 +857,70 @@ namespace C7GameData {
 				.9f - (.1f * numAntiCorruptionBuildings + .7f * numCorruptionReducingSmallWondersInCity));
 			corruption = Math.Max(corruption, 0);
 			corruption = Math.Min(corruption, maxCorruption);
+		}
+
+		private Player PlayerForNationality(GameData gameData, Civilization nationality) {
+			return gameData.players.FirstOrDefault(player => player.civilization == nationality);
+		}
+
+		private void EndResistance(GameData gameData, CityResident resident) {
+			resident.isResisting = false;
+
+			// Resisters imported from Civ III saves are not assigned to a tile.
+			// Once resistance ends, let the normal city governor put the citizen
+			// back to work or convert them to a specialist if no tile is free.
+			if (resident.citizenType.IsDefaultCitizen && resident.tileWorked == Tile.NONE) {
+				C7Engine.AI.CityTileAssignmentAI.AssignNewCitizenToTile(gameData, resident);
+			}
+		}
+
+		/// <summary>
+		/// Performs Civilization III's per-turn resistance continuation check.
+		/// Peace with a resister's mother country ends that citizen's
+		/// resistance. During war, each resister rolls against the imported
+		/// culture/government chance, with the number that may be quelled capped
+		/// by qualifying ground combat units and the difficulty's MilitaryLaw.
+		/// </summary>
+		/// <returns>The number of citizens whose resistance ended.</returns>
+		public int QuellResistance(GameData gameData) {
+			List<CityResident> resisters = residents.Where(resident => resident.isResisting).ToList();
+			if (resisters.Count == 0) {
+				return 0;
+			}
+
+			int quelled = 0;
+			List<(CityResident resident, Player sourcePlayer)> wartimeResisters = new();
+			foreach (CityResident resident in resisters) {
+				Player sourcePlayer = PlayerForNationality(gameData, resident.nationality);
+				if (sourcePlayer != null && owner.IsAtPeaceWith(sourcePlayer)) {
+					EndResistance(gameData, resident);
+					++quelled;
+				} else {
+					wartimeResisters.Add((resident, sourcePlayer));
+				}
+			}
+
+			int militaryQuellLimit = ResistanceRules.MaximumQuelledByGarrison(gameData, this);
+			int quelledByMilitary = 0;
+			foreach ((CityResident resident, Player sourcePlayer) in wartimeResisters) {
+				if (quelledByMilitary >= militaryQuellLimit) {
+					break;
+				}
+
+				int continuedResistanceChance = ResistanceRules.ResistanceChance(
+					gameData,
+					owner,
+					sourcePlayer,
+					continuedResistance: true
+				);
+				if (GameData.rng.Next(100) >= continuedResistanceChance) {
+					EndResistance(gameData, resident);
+					++quelledByMilitary;
+					++quelled;
+				}
+			}
+
+			return quelled;
 		}
 
 		// Does the per turn culture updating for the city and returns whether

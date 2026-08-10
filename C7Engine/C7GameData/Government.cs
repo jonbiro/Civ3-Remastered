@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace C7GameData {
@@ -74,6 +75,31 @@ namespace C7GameData {
 		public int freeUnitsPerCity;
 		public int freeUnitsPerMetropolis;
 		public int unitCost;
+
+		// Percentage chance per turn that a foreign citizen assimilates into
+		// this government's civilization.
+		public int assimilationChance;
+
+		public enum WarWearinessLevel {
+			None,
+			Low,
+			High,
+		}
+		public WarWearinessLevel warWeariness;
+
+		// The Civ III editor stores a resistance modifier for every ordered
+		// pair of governments. The key is the government of the civilization
+		// whose citizen is resisting; this Government is the conqueror.
+		public Dictionary<string, int> resistanceModifierByForeignGovernment = new();
+
+		public int ResistanceModifierAgainst(Government foreignGovernment) {
+			if (foreignGovernment == null) {
+				return 0;
+			}
+			return resistanceModifierByForeignGovernment.TryGetValue(foreignGovernment.name, out int modifier)
+				? modifier
+				: 0;
+		}
 
 		private static void TradeBonus(Tile.Yield yield) {
 			if (yield.type == Tile.YieldType.Commerce && yield.baseYield > 0) {

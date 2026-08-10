@@ -34,6 +34,7 @@ namespace C7GameData {
 
 		internal List<Civilization> civilizations = new List<Civilization>();
 		internal HashSet<CultureGroup> cultureGroups = new HashSet<CultureGroup>();
+		public List<CultureRelationshipLevel> cultureRelationshipLevels = new();
 		internal HashSet<Alliance> alliances;
 		internal Dictionary<Alliance, Alliance> allianceWars = new Dictionary<Alliance, Alliance>();
 

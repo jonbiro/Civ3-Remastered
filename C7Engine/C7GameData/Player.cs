@@ -799,6 +799,10 @@ namespace C7GameData {
 			gold += lastGoldPerTurn;
 		}
 
+		public int QuellResistance(GameData gameData) {
+			return cities.Sum(city => city.QuellResistance(gameData));
+		}
+
 		public void HandleCityUpdates(GameData gameData) {
 			foreach (City c in cities) {
 				// Ensure borders expand before we assign the new citizen, so that
