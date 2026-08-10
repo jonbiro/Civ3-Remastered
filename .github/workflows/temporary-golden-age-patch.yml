@@ -1,0 +1,34 @@
+name: Temporary Golden Age compatibility patch
+
+on:
+  push:
+    branches:
+      - agent/golden-age-compatibility
+    paths:
+      - .github/workflows/temporary-golden-age-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout Golden Age branch
+        uses: actions/checkout@v6
+        with:
+          ref: agent/golden-age-compatibility
+          fetch-depth: 0
+
+      - name: Apply verified Golden Age patch
+        run: |
+          cat scripts/golden-age.part* | tr -d '\r\n' | base64 --decode > /tmp/golden-age.patch
+          echo "60f61eae982e27e30b9e352f2f6a936a27f524cbd2f1cc75ec4949a6a4453f5a  /tmp/golden-age.patch" | sha256sum --check
+          git apply --check /tmp/golden-age.patch
+          git apply /tmp/golden-age.patch
+          git rm scripts/golden-age.part* .github/workflows/temporary-golden-age-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Implement Civilization III Golden Age lifecycle"
+          git push origin HEAD:agent/golden-age-compatibility
