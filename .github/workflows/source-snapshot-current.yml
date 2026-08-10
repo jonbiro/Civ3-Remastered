@@ -1,0 +1,29 @@
+name: Temporary current source snapshot
+
+on:
+  push:
+    branches:
+      - agent/civ3-reference-compatibility
+    paths:
+      - .github/workflows/source-snapshot-current.yml
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Archive source
+        run: tar --exclude=.git -czf ../civ3-remastered-current.tar.gz .
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: civ3-remastered-current
+          path: ../civ3-remastered-current.tar.gz
+          if-no-files-found: error
+          retention-days: 1
