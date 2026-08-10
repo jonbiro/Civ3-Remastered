@@ -43,6 +43,10 @@ Each opponent's city result is rounded down independently before totals are adde
 
 After independently rounded opponent contributions are added, a Police Station removes 25% of the city's laborers from the aggregate unhappy result. Universal Suffrage removes one additional resulting unhappy citizen per city.
 
+## Verification policy
+
+Public CI verifies the hidden point model with deterministic synthetic states on both macOS ARM64 and Linux. Original-file checks validate BIQ flags without committing Firaxis data. Exact event ordering remains provisional until compared with purpose-built original-game save fixtures.
+
 ## Remaining oracle work
 
 - exact original AI/human asymmetries
