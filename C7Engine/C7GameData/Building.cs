@@ -46,6 +46,8 @@ namespace C7GameData {
 		public bool treasuryEarnsInterest;
 		public bool allowsWaterTrade;
 		public bool allowsAirTrade;
+		public bool reducesWarWeariness;
+		public bool reducesWarWearinessGlobally;
 		public HashSet<Civilization.Trait> traits = [];
 
 		public int culturePerTurn = 0;
@@ -101,6 +103,8 @@ namespace C7GameData {
 			treasuryEarnsInterest = building.flags.Contains(SaveBuilding.Flag.TreasuryEarnsInterest);
 			allowsWaterTrade = building.flags.Contains(SaveBuilding.Flag.AllowsWaterTrade);
 			allowsAirTrade = building.flags.Contains(SaveBuilding.Flag.AllowsAirTrade);
+			reducesWarWeariness = building.flags.Contains(SaveBuilding.Flag.ReducesWarWeariness);
+			reducesWarWearinessGlobally = building.flags.Contains(SaveBuilding.Flag.ReducesWarWearinessGlobally);
 			traits = new HashSet<Civilization.Trait>(building.traits);
 
 			if (building.greatWonderProperties != null) {

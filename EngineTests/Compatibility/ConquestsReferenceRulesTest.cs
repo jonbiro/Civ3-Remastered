@@ -204,4 +204,14 @@ public class ConquestsReferenceRulesTest {
 		Assert.False(warrior.StartsGoldenAge);
 	}
 
+	[SkippableFact]
+	public void DefaultRulesExposeWarWearinessMitigationBuildingFlags() {
+		BiqData biq = LoadReferenceBiq();
+		BLDG policeStation = biq.Bldg.Single(building => building.Name == "Police Station");
+		BLDG universalSuffrage = biq.Bldg.Single(building => building.Name == "Universal Suffrage");
+
+		Assert.True(policeStation.ReducesWarWeariness);
+		Assert.True(universalSuffrage.ReducedWarWeariness);
+	}
+
 }

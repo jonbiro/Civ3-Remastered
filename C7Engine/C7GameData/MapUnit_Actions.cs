@@ -56,6 +56,17 @@ public partial class MapUnit {
 					new MsgShowMilitaryAdvisorPopup($"Barbarians have stolen {goldTaken} gold from our cities!\nWe need a stronger military.", happy: false).send();
 				}
 			} else {
+				Player defeatedOwner = tile.cityAtTile.owner;
+				int cityLossPoints = tile.cityAtTile.residents.Count <= 1
+					? WarWearinessRules.LostSizeOneCity
+					: WarWearinessRules.LostLargerCity;
+				int nonDefendingUnitsLost = tile.unitsOnTile.Count(unit =>
+					unit.owner == defeatedOwner && unit.unitType.defense <= 0
+				);
+				defeatedOwner.AddWarWearinessAgainst(
+					owner,
+					cityLossPoints + nonDefendingUnitsLost * WarWearinessRules.LostNonDefendingUnit
+				);
 				CityInteractions.DestroyCity(tile);
 			}
 		}
@@ -315,6 +326,10 @@ public partial class MapUnit {
 		if (Double.IsNaN(attackerOdds))
 			return result;
 
+		// Being attacked as the defending combat unit adds weariness whether
+		// the defender survives or not. Barbarians are ignored by the helper.
+		defender.owner.AddWarWearinessAgainst(attacker.owner, WarWearinessRules.DefendingUnitAttacked);
+
 		// Defensive bombard
 		MapUnit defensiveBombarder = MapUnit.NONE;
 		double defensiveBombarderStrength = 0.0;
@@ -382,6 +397,9 @@ public partial class MapUnit {
 		}
 
 		if ((result == CombatResult.AttackerKilled) || (result == CombatResult.DefenderKilled)) {
+			if (result == CombatResult.AttackerKilled) {
+				attacker.owner.AddWarWearinessAgainst(defender.owner, WarWearinessRules.LostAttackingUnit);
+			}
 			var (dead, alive) = (result == CombatResult.AttackerKilled) ? (attacker, defender) : (defender, attacker);
 			alive.RollToPromote(dead);
 			alive.owner.MaybeStartGoldenAgeFromUnitVictory(alive, dead, EngineStorage.gameData);

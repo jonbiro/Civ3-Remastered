@@ -14,13 +14,15 @@ The remaining uncertainty is exact original-game random-call ordering when a cit
 
 **Required verification:** capture Civ III saves immediately before resistance processing, record resulting resister counts across repeated deterministic scenarios, and compare the engine's per-citizen roll order and nationality handling.
 
-## UNSUPPORTED: war-weariness event accounting
+## UNKNOWN: exact war-weariness event asymmetries and declaration causes need oracle fixtures
 
-**Area:** diplomacy / war state / citizen happiness
+**Area:** diplomacy / war state / citizen happiness / deterministic compatibility
 
-The stock BIQ government values are imported: Republic and Feudalism use low war weariness, Democracy uses high war weariness, and the remaining stock governments use none. The runtime does not yet track the original game's event-driven war-weariness points, thresholds, aggressor/defender distinctions, or per-opponent history.
+The runtime now stores a signed point balance for each opponent, imports the original SAV array, applies the reverse-engineered 31/61/91/121 levels, decays history during peace, and integrates war happiness/unhappiness into city moods. It also covers hostile-territory exposure, combat attacks/losses, bombardment to one hit point, bombardment destruction, city loss, Police Stations, Universal Suffrage, and high-war-weariness government collapse.
 
-**Required implementation:** add persistent per-opponent war-weariness state, source-backed point events and thresholds, peace-time reset/decay behavior, and deterministic mood fixtures before applying unhappy citizens.
+The best-known community research reports intentional or accidental AI/human asymmetries and says the -30 defensive-war offset is not awarded for every apparent declaration cause, such as some alliance/MPP or provoked wars. The donor engine currently exposes one generic declaration path, so Classic mode cannot yet distinguish every original cause. Pillage and field capture of non-defending units also lack complete donor-engine actions; non-defending losses are presently counted when a city is taken.
+
+**Required verification:** create original-game saves around direct declarations, alliance/MPP declarations, failed-spy or nuclear provocations, mixed human/AI combats, pillage, non-defending-unit capture, peace signing, and Democracy collapse. Compare the exact ordered point deltas and first/last affected mood cycles before encoding disputed asymmetries as Classic-mode behavior.
 
 ## UNKNOWN: exact Golden Age within-turn sequencing needs oracle fixtures
 

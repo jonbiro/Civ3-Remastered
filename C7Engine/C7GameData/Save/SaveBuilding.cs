@@ -23,6 +23,8 @@ namespace C7GameData.Save {
 			TreasuryEarnsInterest,
 			AllowsWaterTrade,
 			AllowsAirTrade,
+			ReducesWarWeariness,
+			ReducesWarWearinessGlobally,
 		}
 
 		public class GreatWonderProperties {

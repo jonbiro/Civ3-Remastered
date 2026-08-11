@@ -1034,7 +1034,9 @@ namespace C7GameData {
 			}
 
 			// TODO: add penalty for drafting
-			// TODO: add penalty for war weariness
+			(int warHappiness, int warWeariness) = owner.GetWarWearinessMoodEffects(this);
+			contentToHappyMoves += warHappiness;
+			contentToHappyMoves -= warWeariness;
 			// TODO: add penalty for aggression against home country
 
 			// Building happiness/unhappiness, which only affects the unhappy to

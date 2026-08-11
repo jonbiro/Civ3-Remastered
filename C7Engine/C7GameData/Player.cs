@@ -394,6 +394,108 @@ namespace C7GameData {
 			return currentTurn >= pr.refuseContactUntilTurn;
 		}
 
+		public void AddWarWearinessAgainst(Player opponent, int points) {
+			if (opponent == null || opponent == this || isBarbarians || opponent.isBarbarians) {
+				return;
+			}
+			if (playerRelationships.TryGetValue(opponent.id, out PlayerRelationship relationship)) {
+				relationship.AddWarWeariness(points);
+			}
+		}
+
+		private bool HasUnitInTerritoryOf(Player opponent) {
+			return units.Any(unit => unit.location != null && unit.location.OwningPlayer() == opponent);
+		}
+
+		/// <summary>
+		/// Applies the per-turn Civilization III war-weariness changes for each
+		/// opponent independently. Peace keeps the history but decays it toward
+		/// zero; active wars account for hostile-territory exposure or recovery.
+		/// </summary>
+		public void UpdateWarWearinessForTurn(GameData gameData) {
+			if (isBarbarians || defeated) return;
+
+			foreach ((ID opponentId, PlayerRelationship relationship) in playerRelationships) {
+				Player opponent = gameData.players.Find(player => player.id == opponentId);
+				if (opponent == null || opponent.isBarbarians || opponent.defeated) continue;
+
+				if (!relationship.AtWar()) {
+					relationship.DecayWarWearinessAtPeace();
+					continue;
+				}
+
+				bool ourUnitsInTheirTerritory = HasUnitInTerritoryOf(opponent);
+				bool theirUnitsInOurTerritory = opponent.HasUnitInTerritoryOf(this);
+				if (ourUnitsInTheirTerritory) {
+					relationship.AddWarWeariness(WarWearinessRules.UnitInEnemyTerritoryPerTurn);
+				} else if (!theirUnitsInOurTerritory && relationship.WarWearinessLevel() > 0) {
+					relationship.AddWarWeariness(-WarWearinessRules.WartimeRecoveryPerTurn);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Returns war-happiness and war-weariness citizen moves for one city.
+		/// Each opponent is rounded down independently before results are added.
+		/// </summary>
+		public (int happy, int unhappy) GetWarWearinessMoodEffects(City city) {
+			int laborers = city.residents.Count(resident => resident.citizenType.IsDefaultCitizen && !resident.isResisting);
+			if (laborers == 0 || government == null) return (0, 0);
+
+			bool localReduction = city.GetBuildings().Any(cityBuilding => cityBuilding.building.reducesWarWeariness);
+			bool globalReduction = GetActiveWonders().Any(wonder => wonder.Item2.building.reducesWarWearinessGlobally);
+			int happy = 0;
+			int unhappy = 0;
+
+			foreach ((ID _, PlayerRelationship relationship) in playerRelationships) {
+				if (!relationship.AtWar()) continue;
+
+				if (relationship.warWearinessPoints < 0) {
+					happy += WarWearinessRules.PercentageOfLaborers(laborers, 25);
+					continue;
+				}
+
+				int percentage = WarWearinessRules.UnhappyPercentage(
+					government.warWeariness,
+					relationship.WarWearinessLevel()
+				);
+				unhappy += WarWearinessRules.PercentageOfLaborers(laborers, percentage);
+			}
+
+			// Civ III rounds each opponent's contribution down before adding
+			// them. A Police Station then removes one quarter-city-equivalent
+			// from the aggregate penalty, and Universal Suffrage removes one
+			// additional unhappy citizen.
+			if (localReduction) {
+				unhappy = Math.Max(0, unhappy - WarWearinessRules.PercentageOfLaborers(laborers, 25));
+			}
+			if (globalReduction && unhappy > 0) --unhappy;
+			return (Math.Min(laborers, happy), Math.Min(laborers, unhappy));
+		}
+
+		/// <summary>
+		/// High-war-weariness governments collapse at level three or higher.
+		/// The normal government-transition rules determine the anarchy length.
+		/// </summary>
+		public bool MaybeCollapseGovernmentFromWarWeariness(GameData gameData) {
+			if (government == null || government.transitionType || government.warWeariness != Government.WarWearinessLevel.High) {
+				return false;
+			}
+			bool collapse = playerRelationships.Values.Any(relationship =>
+				relationship.AtWar() && relationship.WarWearinessLevel() >= 3
+			);
+			if (!collapse) return false;
+
+			Government transitionGovernment = gameData.governments.Find(candidate => candidate.transitionType);
+			if (transitionGovernment == null) return false;
+
+			government = transitionGovernment;
+			inAnarchyUntilTurn = gameData.turn + GetTurnsOfAnarchyForTransition(gameData);
+			turnsUntilPriorityReevaluation = 0;
+			log.Information($"{this} government collapsed from war weariness; anarchy lasts until turn {inAnarchyUntilTurn}");
+			return true;
+		}
+
 		public bool SitsOutFirstTurn() {
 			return this.isBarbarians || this.skipFirstTurn;
 		}
