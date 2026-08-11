@@ -128,7 +128,7 @@ public static class Civ3OracleFixtures {
 			throw new InvalidDataException(
 				$"Oracle manifest '{manifest.Name}' must name cityName for resistance signals."
 			);
-		}
+n		}
 
 		return manifest;
 	}
@@ -142,11 +142,9 @@ public static class Civ3OracleFixtures {
 			.OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
 			.Select(path => {
 				try {
-				{
 					return (path, ParseManifest(File.ReadAllText(path)));
 				}
-				catch (Exception exception) when (exception is JsonException or InvalidDataException)
-				{
+				catch (Exception exception) when (exception is JsonException or InvalidDataException) {
 					throw new InvalidDataException($"Oracle manifest is invalid: {path}", exception);
 				}
 			})
