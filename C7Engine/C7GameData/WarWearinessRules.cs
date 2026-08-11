@@ -32,14 +32,18 @@ public static class WarWearinessRules {
 	public static int DecayTowardZeroAtPeace(int points) {
 		if (points == 0) return 0;
 		int amount = (int)Math.Ceiling(Math.Abs(points) / 20.0);
+		int remaining = points > 0
+			? Math.Max(0, points - amount)
+			: Math.Min(0, points + amount);
 
-		// Civ III also applies its normal one-point level recovery while at
-		// peace whenever a positive war-weariness level is still active.
-		if (LevelForPoints(points) > 0) {
-			amount += WartimeRecoveryPerTurn;
+		// Apply normal one-point level recovery only when the percentage
+		// decay leaves a positive war-weariness level active. This preserves
+		// boundary behavior such as 31 -> 29 and 121 -> 113 -> 106.
+		if (remaining > 0 && LevelForPoints(remaining) > 0) {
+			remaining = Math.Max(0, remaining - WartimeRecoveryPerTurn);
 		}
 
-		return points > 0 ? Math.Max(0, points - amount) : Math.Min(0, points + amount);
+		return remaining;
 	}
 
 	public static int UnhappyPercentage(Government.WarWearinessLevel governmentMode, int level) {
