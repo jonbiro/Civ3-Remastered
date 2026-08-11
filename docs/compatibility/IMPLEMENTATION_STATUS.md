@@ -31,6 +31,7 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Defensive-war happiness, hostile-territory exposure, combat loss/attack, bombardment, improvement-loss, and city-loss event hooks
 - Low/high government mood effects, per-opponent rounding, Police Station mitigation, and Universal Suffrage mitigation
 - High-war-weariness government collapse into the normal anarchy transition
+- Private paired-SAV oracle harness with stable civilization/city selectors, exact before/after snapshots, exact deltas, path-containment checks, and public-CI-safe opt-in behavior
 
 ## Imported and available, but not yet behavior-complete
 
@@ -38,9 +39,13 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 
 ## Next behavior slices
 
-1. Original-game oracle fixtures for war-weariness event ordering, AI asymmetries, and declaration causes
-2. Original-game save fixtures for exact Golden Age trigger-cycle timing
-3. Original-game save fixtures for exact resistance random-call ordering
+1. Populate the private oracle matrix for war-weariness event ordering, AI asymmetries, declaration causes, and peace boundaries
+2. Populate private save fixtures for exact Golden Age trigger-cycle timing and end boundaries
+3. Populate private save fixtures for exact resistance random-call ordering and mixed-nationality handling
+4. Implement and verify city culture accumulation, border growth, and cultural victory behavior
+5. Complete citizen mood, disorder, celebration, and government-transition compatibility beyond the already covered luxury and war-weariness effects
+
+See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix.
 
 ## Rules for updating this file
 

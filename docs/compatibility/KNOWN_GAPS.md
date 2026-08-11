@@ -4,6 +4,8 @@ This file records concrete differences or remaining uncertainties discovered whi
 
 Statuses use the definitions in `docs/COMPATIBILITY_PLAN.md`.
 
+The private paired-save harness needed to investigate these gaps is implemented. Contributor-owned fixtures and manifests remain outside the repository. See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for setup, schema, capture procedure, and the required scenario matrix.
+
 ## UNKNOWN: exact resistance random-call ordering needs oracle fixtures
 
 **Area:** captured cities / resistance / deterministic compatibility
@@ -12,7 +14,7 @@ The engine imports the six stock culture-ratio bands, ordered government-versus-
 
 The remaining uncertainty is exact original-game random-call ordering when a city contains multiple resisters, especially if several nationalities are represented. The implemented order is deterministic and source-backed, but it has not yet been compared against a sequence of original-game save fixtures.
 
-**Required verification:** capture Civ III saves immediately before resistance processing, record resulting resister counts across repeated deterministic scenarios, and compare the engine's per-citizen roll order and nationality handling.
+**Required verification:** capture paired Civ III saves immediately before and after resistance processing, record resulting resister counts across repeated deterministic scenarios, and compare the engine's per-citizen roll order and nationality handling through the private oracle harness.
 
 ## UNKNOWN: exact war-weariness event asymmetries and declaration causes need oracle fixtures
 
@@ -22,7 +24,7 @@ The runtime now stores a signed point balance for each opponent, imports the ori
 
 The best-known community research reports intentional or accidental AI/human asymmetries and says the -30 defensive-war offset is not awarded for every apparent declaration cause, such as some alliance/MPP or provoked wars. The donor engine currently exposes one generic declaration path, so Classic mode cannot yet distinguish every original cause. Pillage and field capture of non-defending units also lack complete donor-engine actions; non-defending losses are presently counted when a city is taken.
 
-**Required verification:** create original-game saves around direct declarations, alliance/MPP declarations, failed-spy or nuclear provocations, mixed human/AI combats, pillage, non-defending-unit capture, peace signing, and Democracy collapse. Compare the exact ordered point deltas and first/last affected mood cycles before encoding disputed asymmetries as Classic-mode behavior.
+**Required verification:** capture paired saves around direct declarations, alliance/MPP declarations, failed-spy or nuclear provocations, mixed human/AI combats, pillage, non-defending-unit capture, peace signing, and Democracy collapse. Compare exact ordered point deltas and first/last affected mood cycles through the private oracle harness before encoding disputed asymmetries as Classic-mode behavior.
 
 ## UNKNOWN: exact Golden Age within-turn sequencing needs oracle fixtures
 
@@ -32,7 +34,7 @@ Golden Age state, once-per-civilization enforcement, the imported duration, uniq
 
 The original Civilopedia establishes triggers, duration, and yields, but does not fully specify within-turn sequencing. The implementation applies a combat-triggered Golden Age to the current yield cycle and a wonder-triggered Golden Age beginning with the next full yield cycle, avoiding partial application across a city's iteration order.
 
-**Required verification:** use original-game saves immediately before combat and wonder-completion triggers to confirm the first and final affected production/commerce cycles and `GoldenAgeEndTurn` conversion boundary.
+**Required verification:** capture paired original-game saves immediately before and after combat and wonder-completion triggers to confirm the first and final affected production/commerce cycles and the `GoldenAgeEndTurn` conversion boundary through the private oracle harness.
 
 ## Policy
 
