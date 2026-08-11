@@ -11,10 +11,11 @@ export CIV3_HOME="/absolute/path/to/Civilization III Complete"
 export CIV3_ORACLE_HOME="/absolute/path/to/private/civ3-oracles"
 dotnet test EngineTests/EngineTests.csproj \
   --configuration Release \
-  --filter FullyQualifiedName~OriginalSaveOracleFixtureTest
+  --filter FullyQualifiedName~OriginalSaveOracleFixtureTest \
+  --logger "console;verbosity=detailed"
 ```
 
-`CIV3_HOME` must pass the normal installation probe. `CIV3_ORACLE_HOME` may contain nested fixture directories. Every `*.json` file under that root is treated as an oracle manifest.
+`CIV3_HOME` must pass the normal installation probe. `CIV3_ORACLE_HOME` may contain nested fixture directories. Only files ending in `*.oracle.json` are treated as manifests, so notes and other JSON files can safely live beside the fixtures.
 
 The fixture directory must stay outside the repository. Do not commit, upload, or attach original `.sav`, `.biq`, text, sound, or art files to issues, pull requests, CI artifacts, or release packages.
 
@@ -25,55 +26,48 @@ A fixture should keep its paired saves and manifest together:
 ```text
 civ3-oracles/
   war-weariness/
-    direct-declaration/
+    hostile-territory-level-one/
       before.sav
       after.sav
-      fixture.json
+      fixture.oracle.json
   golden-age/
     unique-unit-trigger/
       before.sav
       after.sav
-      fixture.json
+      fixture.oracle.json
 ```
 
-Save paths are resolved relative to the manifest. The resolver rejects paths that leave `CIV3_ORACLE_HOME`.
+Save paths are portable relative `.sav` paths resolved from the manifest directory. The resolver rejects absolute paths, non-save extensions, manifests or saves outside `CIV3_ORACLE_HOME`, and symbolic-link traversal.
 
 ## Manifest contract
 
 ```json
 {
-  "name": "direct declaration crosses level one",
+  "name": "hostile territory exposure crosses level one",
   "beforeSave": "before.sav",
   "afterSave": "after.sav",
   "playerCivilization": "Rome",
   "opponentCivilization": "Greece",
-  "cityName": "Rome",
   "before": {
     "turn": 40,
     "warWearinessPoints": 30,
-    "atWar": false,
-    "hasTriggeredGoldenAge": false,
-    "goldenAgeTurnsRemaining": 0,
-    "resisterCount": 0
+    "atWar": true
   },
   "after": {
     "turn": 41,
     "warWearinessPoints": 31,
-    "atWar": true,
-    "hasTriggeredGoldenAge": false,
-    "goldenAgeTurnsRemaining": 0,
-    "resisterCount": 0
+    "atWar": true
   },
   "delta": {
     "turn": 1,
-    "warWearinessPoints": 1,
-    "goldenAgeTurnsRemaining": 0,
-    "resisterCount": 0
+    "warWearinessPoints": 1
   }
 }
 ```
 
-Fields in `before`, `after`, and `delta` are optional. Omitted fields are not asserted. `opponentCivilization` is needed for relationship and war-weariness assertions. `cityName` is needed for resister assertions. Civilization and city selectors are case-insensitive but must identify exactly one imported object.
+Fields inside `before`, `after`, and `delta` are optional, but all three objects must be present and the manifest must assert at least one observed signal overall. Unknown field names are rejected so a spelling mistake cannot silently disable an assertion. `beforeSave` and `afterSave` must be different relative `.sav` paths.
+
+`opponentCivilization` is required for relationship and war-weariness assertions. `cityName` is required for resister assertions. Civilization and city selectors are case-insensitive but must identify exactly one imported object.
 
 The current snapshot vocabulary is intentionally narrow:
 
@@ -86,14 +80,20 @@ The current snapshot vocabulary is intentionally narrow:
 
 Expand the schema only when a concrete compatibility question requires another observable value.
 
+## Observed output
+
+For every private fixture, the test emits a copyable JSON report before applying assertions. The report contains the selected metadata, observed `before` and `after` snapshots, and calculated deltas. Keep the detailed console logger enabled to see this output.
+
+Use the report to diagnose whether a mismatch came from the importer, the scenario, the save boundary, or the runtime rule. Do not paste observed values into the manifest merely to make a test pass. First confirm that the two original-game saves capture the intended transition and that the selectors identify the intended civilization, opponent, and city.
+
 ## Capture procedure
 
 1. Start from a controlled Conquests scenario or save with the relevant rules visible and all unrelated randomness minimized.
 2. Save immediately before the single action or turn boundary under study.
 3. Perform exactly one controlled action, end exactly one turn, or advance to the precise boundary being tested.
 4. Save immediately afterward without performing unrelated moves.
-5. Copy both saves into the private fixture directory and record the expected snapshots and deltas in the manifest.
-6. Run the focused oracle test locally.
+5. Copy both saves into the private fixture directory and record the expected snapshots and deltas in a `*.oracle.json` manifest.
+6. Run the focused oracle test locally and inspect the emitted observed report.
 7. When an oracle disagrees with the remaster, preserve the fixture and document the mismatch before changing Classic-mode behavior.
 
 A paired save establishes only the observed transition for that scenario. It does not, by itself, prove a general rule. Use multiple fixtures when player type, declaration cause, government, culture ratio, nationality, combat role, or turn ordering could change the result.
@@ -143,4 +143,4 @@ A paired save establishes only the observed transition for that scenario. It doe
 
 ## Interpreting failures
 
-An oracle mismatch can come from the importer, the runtime rule, save timing, scenario setup, or an incorrect expected value. Report all observed before/after snapshots first. Do not change the expected manifest merely to make Classic mode pass. Enhanced or Remastered rules may intentionally diverge only after the original behavior is represented and retained as a Classic-mode contract.
+An oracle mismatch can come from the importer, the runtime rule, save timing, scenario setup, or an incorrect expected value. Record all observed before/after snapshots first. Do not change the expected manifest merely to make Classic mode pass. Enhanced or Remastered rules may intentionally diverge only after the original behavior is represented and retained as a Classic-mode contract.
