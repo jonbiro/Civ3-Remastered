@@ -56,7 +56,10 @@ public static class Civ3OracleFixtures {
 	public const string ManifestSearchPattern = "*.oracle.json";
 
 	internal static JsonSerializerOptions JsonOptions { get; } = new() {
+		AllowTrailingCommas = true,
 		PropertyNameCaseInsensitive = true,
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+		ReadCommentHandling = JsonCommentHandling.Skip,
 		UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
 		WriteIndented = true,
 	};
@@ -67,8 +70,10 @@ public static class Civ3OracleFixtures {
 	}
 
 	public static bool ShouldSkipOracleTests() {
-		// Public CI must never receive or inspect publisher-owned save files.
-		if (Environment.GetEnvironmentVariable("CI") != null) {
+		string ci = Environment.GetEnvironmentVariable("CI");
+		if (!string.IsNullOrWhiteSpace(ci)
+			&& !string.Equals(ci, "false", StringComparison.OrdinalIgnoreCase)
+			&& ci != "0") {
 			return true;
 		}
 
@@ -85,48 +90,64 @@ public static class Civ3OracleFixtures {
 	}
 
 	public static Civ3OracleManifest ParseManifest(string json) {
-		Civ3OracleManifest manifest = JsonSerializer.Deserialize<Civ3OracleManifest>(json, JsonOptions);
+		Civ3OracleManifest manifest;
+		try {
+			manifest = JsonSerializer.Deserialize<Civ3OracleManifest>(json, JsonOptions);
+		} catch (JsonException exception) {
+			throw new InvalidDataException("Oracle manifest is not valid JSON for the supported schema.", exception);
+		}
+
 		if (manifest == null || string.IsNullOrWhiteSpace(manifest.Name)) {
 			throw new InvalidDataException("Oracle manifest must contain a non-empty name.");
 		}
 		if (string.IsNullOrWhiteSpace(manifest.BeforeSave) || string.IsNullOrWhiteSpace(manifest.AfterSave)) {
 			throw new InvalidDataException($"Oracle manifest '{manifest.Name}' must name beforeSave and afterSave files.");
 		}
+		ValidatePortableSavePath(manifest.Name, "beforeSave", manifest.BeforeSave);
+		ValidatePortableSavePath(manifest.Name, "afterSave", manifest.AfterSave);
+		if (string.Equals(manifest.BeforeSave, manifest.AfterSave, StringComparison.OrdinalIgnoreCase)) {
+			throw new InvalidDataException($"Oracle manifest '{manifest.Name}' must use different beforeSave and afterSave files.");
+		}
 		if (string.IsNullOrWhiteSpace(manifest.PlayerCivilization)) {
 			throw new InvalidDataException($"Oracle manifest '{manifest.Name}' must name playerCivilization.");
 		}
-
-		// Explicit JSON nulls must not disable validation or cause a later null
-		// reference while an opt-in private test is running.
-		manifest.Before ??= new Civ3OracleExpectedSnapshot();
-		manifest.After ??= new Civ3OracleExpectedSnapshot();
-		manifest.Delta ??= new Civ3OracleExpectedDelta();
-
-		if (!HasExpectedSignal(manifest.Before)
-			&& !HasExpectedSignal(manifest.After)
-			&& !HasExpectedSignal(manifest.Delta)) {
-			throw new InvalidDataException(
-				$"Oracle manifest '{manifest.Name}' must assert at least one before, after, or delta signal."
-			);
+		if (manifest.Before == null || manifest.After == null || manifest.Delta == null) {
+			throw new InvalidDataException($"Oracle manifest '{manifest.Name}' must contain before, after, and delta objects.");
 		}
 
-		bool requiresOpponent = manifest.Before.WarWearinessPoints.HasValue
+		bool expectsRelationship = manifest.Before.WarWearinessPoints.HasValue
 			|| manifest.Before.AtWar.HasValue
 			|| manifest.After.WarWearinessPoints.HasValue
 			|| manifest.After.AtWar.HasValue
 			|| manifest.Delta.WarWearinessPoints.HasValue;
-		if (requiresOpponent && string.IsNullOrWhiteSpace(manifest.OpponentCivilization)) {
+		if (expectsRelationship && string.IsNullOrWhiteSpace(manifest.OpponentCivilization)) {
 			throw new InvalidDataException(
-				$"Oracle manifest '{manifest.Name}' must name opponentCivilization for war-state signals."
+				$"Oracle manifest '{manifest.Name}' must name opponentCivilization for relationship assertions."
 			);
 		}
 
-		bool requiresCity = manifest.Before.ResisterCount.HasValue
+		bool expectsResisters = manifest.Before.ResisterCount.HasValue
 			|| manifest.After.ResisterCount.HasValue
 			|| manifest.Delta.ResisterCount.HasValue;
-		if (requiresCity && string.IsNullOrWhiteSpace(manifest.CityName)) {
+		if (expectsResisters && string.IsNullOrWhiteSpace(manifest.CityName)) {
 			throw new InvalidDataException(
-				$"Oracle manifest '{manifest.Name}' must name cityName for resistance signals."
+				$"Oracle manifest '{manifest.Name}' must name cityName for resister assertions."
+			);
+		}
+
+		if (!HasAnyExpectation(manifest)) {
+			throw new InvalidDataException($"Oracle manifest '{manifest.Name}' must assert at least one observed signal.");
+		}
+		if ((manifest.Before.GoldenAgeTurnsRemaining.HasValue && manifest.Before.GoldenAgeTurnsRemaining.Value < 0)
+			|| (manifest.After.GoldenAgeTurnsRemaining.HasValue && manifest.After.GoldenAgeTurnsRemaining.Value < 0)) {
+			throw new InvalidDataException(
+				$"Oracle manifest '{manifest.Name}' cannot expect a negative Golden Age turns-remaining snapshot."
+			);
+		}
+		if ((manifest.Before.ResisterCount.HasValue && manifest.Before.ResisterCount.Value < 0)
+			|| (manifest.After.ResisterCount.HasValue && manifest.After.ResisterCount.Value < 0)) {
+			throw new InvalidDataException(
+				$"Oracle manifest '{manifest.Name}' cannot expect a negative resister-count snapshot."
 			);
 		}
 
@@ -138,14 +159,15 @@ public static class Civ3OracleFixtures {
 			throw new DirectoryNotFoundException($"Oracle fixture directory was not found: {root}");
 		}
 
-		return Directory.EnumerateFiles(root, ManifestSearchPattern, SearchOption.AllDirectories)
+		string fullRoot = Path.GetFullPath(root);
+		return Directory.EnumerateFiles(fullRoot, ManifestSearchPattern, SearchOption.AllDirectories)
 			.OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
 			.Select(path => {
+				EnsurePathIsWithinRoot(fullRoot, path, "Oracle manifest path escapes the private fixture root.");
 				try {
 					return (path, ParseManifest(File.ReadAllText(path)));
-				}
-				catch (Exception exception) when (exception is JsonException or InvalidDataException) {
-					throw new InvalidDataException($"Oracle manifest is invalid: {path}", exception);
+				} catch (InvalidDataException exception) {
+					throw new InvalidDataException($"Invalid oracle manifest '{path}': {exception.Message}", exception);
 				}
 			})
 			.ToList();
@@ -161,27 +183,29 @@ public static class Civ3OracleFixtures {
 		if (string.IsNullOrWhiteSpace(relativePath)) {
 			throw new InvalidDataException("Oracle fixture path cannot be empty.");
 		}
-		if (Path.IsPathRooted(relativePath)) {
-			throw new InvalidDataException($"Oracle fixture path must be relative: {relativePath}");
+		if (IsPortableRootedPath(relativePath)) {
+			throw new InvalidDataException($"Oracle fixture path must be relative to its manifest: {relativePath}");
+		}
+		if (!string.Equals(Path.GetExtension(relativePath), ".sav", StringComparison.OrdinalIgnoreCase)) {
+			throw new InvalidDataException($"Oracle fixture must be a .sav file: {relativePath}");
 		}
 
 		string fullRoot = Path.TrimEndingDirectorySeparator(Path.GetFullPath(root));
 		string fullManifestPath = Path.GetFullPath(manifestPath);
-		EnsurePathWithinRoot(fullRoot, fullManifestPath, "Oracle manifest path escapes the private fixture root");
+		EnsurePathIsWithinRoot(fullRoot, fullManifestPath, "Oracle manifest path escapes the private fixture root.");
 		if (!File.Exists(fullManifestPath)) {
 			throw new FileNotFoundException("Oracle manifest file was not found.", fullManifestPath);
 		}
-
 		string manifestDirectory = Path.GetDirectoryName(fullManifestPath) ?? fullRoot;
 		string candidate = Path.GetFullPath(Path.Combine(manifestDirectory, relativePath));
-		EnsurePathWithinRoot(fullRoot, candidate, $"Oracle fixture path escapes {EnvironmentVariable}");
-		if (!string.Equals(Path.GetExtension(candidate), ".sav", StringComparison.OrdinalIgnoreCase)) {
-			throw new InvalidDataException($"Oracle fixture must be a Civilization III .sav file: {relativePath}");
-		}
+		EnsurePathIsWithinRoot(
+			fullRoot,
+			candidate,
+			$"Oracle fixture path escapes {EnvironmentVariable}: {relativePath}"
+		);
 		if (!File.Exists(candidate)) {
 			throw new FileNotFoundException("Oracle SAV file was not found.", candidate);
 		}
-
 		RejectSymbolicLinkTraversal(fullRoot, candidate);
 		return candidate;
 	}
@@ -191,6 +215,9 @@ public static class Civ3OracleFixtures {
 		Civ3OracleManifest manifest,
 		Civ3Installation installation
 	) {
+		ArgumentNullException.ThrowIfNull(manifest);
+		ArgumentNullException.ThrowIfNull(installation);
+
 		SaveGame save = ImportCiv3.ImportSav(
 			savePath,
 			installation.ConquestsBiqPath,
@@ -214,8 +241,17 @@ public static class Civ3OracleFixtures {
 
 		int? resisterCount = null;
 		if (!string.IsNullOrWhiteSpace(manifest.CityName)) {
-			SaveCity city = FindCity(save, player, manifest.CityName, manifest.Name);
-			resisterCount = city.residents.Count(resident => resident.isResisting);
+			List<SaveCity> matchingCities = save.Cities.Where(candidate =>
+				candidate.owner == player.id
+				&& string.Equals(candidate.name, manifest.CityName, StringComparison.OrdinalIgnoreCase)
+			).ToList();
+			if (matchingCities.Count != 1) {
+				throw new InvalidDataException(
+					$"Oracle '{manifest.Name}' expected exactly one city '{manifest.CityName}' "
+					+ $"owned by {manifest.PlayerCivilization}, but found {matchingCities.Count}."
+				);
+			}
+			resisterCount = matchingCities[0].residents.Count(resident => resident.isResisting);
 		}
 
 		return new Civ3OracleSnapshot {
@@ -228,29 +264,60 @@ public static class Civ3OracleFixtures {
 		};
 	}
 
-	private static bool HasExpectedSignal(Civ3OracleExpectedSnapshot snapshot) {
-		return snapshot.Turn.HasValue
-			|| snapshot.WarWearinessPoints.HasValue
-			|| snapshot.AtWar.HasValue
-			|| snapshot.HasTriggeredGoldenAge.HasValue
-			|| snapshot.GoldenAgeTurnsRemaining.HasValue
-			|| snapshot.ResisterCount.HasValue;
+	public static string FormatObservedContract(
+		Civ3OracleManifest manifest,
+		Civ3OracleSnapshot before,
+		Civ3OracleSnapshot after
+	) {
+		return JsonSerializer.Serialize(new {
+			manifest.Name,
+			manifest.BeforeSave,
+			manifest.AfterSave,
+			manifest.PlayerCivilization,
+			manifest.OpponentCivilization,
+			manifest.CityName,
+			Before = before,
+			After = after,
+			Delta = new {
+				Turn = after.Turn - before.Turn,
+				WarWearinessPoints = Difference(before.WarWearinessPoints, after.WarWearinessPoints),
+				GoldenAgeTurnsRemaining = after.GoldenAgeTurnsRemaining - before.GoldenAgeTurnsRemaining,
+				ResisterCount = Difference(before.ResisterCount, after.ResisterCount),
+			},
+		}, JsonOptions);
 	}
 
-	private static bool HasExpectedSignal(Civ3OracleExpectedDelta delta) {
-		return delta.Turn.HasValue
-			|| delta.WarWearinessPoints.HasValue
-			|| delta.GoldenAgeTurnsRemaining.HasValue
-			|| delta.ResisterCount.HasValue;
+	private static int? Difference(int? before, int? after) {
+		return before.HasValue && after.HasValue ? after.Value - before.Value : null;
 	}
 
-	private static void EnsurePathWithinRoot(string root, string path, string message) {
-		string relativeToRoot = Path.GetRelativePath(root, path);
+	private static void ValidatePortableSavePath(string manifestName, string propertyName, string path) {
+		if (IsPortableRootedPath(path)) {
+			throw new InvalidDataException(
+				$"Oracle manifest '{manifestName}' property {propertyName} must be a relative path."
+			);
+		}
+		if (!string.Equals(Path.GetExtension(path), ".sav", StringComparison.OrdinalIgnoreCase)) {
+			throw new InvalidDataException(
+				$"Oracle manifest '{manifestName}' property {propertyName} must point to a .sav file."
+			);
+		}
+	}
+
+	private static bool IsPortableRootedPath(string path) {
+		return Path.IsPathRooted(path)
+			|| path.StartsWith('\\')
+			|| path.StartsWith('/')
+			|| (path.Length >= 2 && char.IsLetter(path[0]) && path[1] == ':');
+	}
+
+	private static void EnsurePathIsWithinRoot(string fullRoot, string candidate, string message) {
+		string relativeToRoot = Path.GetRelativePath(fullRoot, Path.GetFullPath(candidate));
 		if (Path.IsPathRooted(relativeToRoot)
 			|| relativeToRoot == ".."
 			|| relativeToRoot.StartsWith($"..{Path.DirectorySeparatorChar}", StringComparison.Ordinal)
 			|| relativeToRoot.StartsWith($"..{Path.AltDirectorySeparatorChar}", StringComparison.Ordinal)) {
-			throw new InvalidDataException($"{message}: {path}");
+			throw new InvalidDataException(message);
 		}
 	}
 
@@ -273,30 +340,34 @@ public static class Civ3OracleFixtures {
 		}
 	}
 
-	private static SavePlayer FindPlayer(SaveGame save, string civilization, string oracleName) {
-		List<SavePlayer> matches = save.Players.Where(candidate =>
-			string.Equals(candidate.civilization, civilization, StringComparison.OrdinalIgnoreCase)
-		).ToList();
-		if (matches.Count != 1) {
-			throw new InvalidDataException(
-				$"Oracle '{oracleName}' expected exactly one civilization named '{civilization}', "
-				+ $"but found {matches.Count}."
-			);
-		}
-		return matches[0];
+	private static bool HasAnyExpectation(Civ3OracleManifest manifest) {
+		return SnapshotHasExpectation(manifest.Before)
+			|| SnapshotHasExpectation(manifest.After)
+			|| manifest.Delta.Turn.HasValue
+			|| manifest.Delta.WarWearinessPoints.HasValue
+			|| manifest.Delta.GoldenAgeTurnsRemaining.HasValue
+			|| manifest.Delta.ResisterCount.HasValue;
 	}
 
-	private static SaveCity FindCity(SaveGame save, SavePlayer player, string cityName, string oracleName) {
-		List<SaveCity> matches = save.Cities.Where(candidate =>
-			candidate.owner == player.id
-			&& string.Equals(candidate.name, cityName, StringComparison.OrdinalIgnoreCase)
+	private static bool SnapshotHasExpectation(Civ3OracleExpectedSnapshot snapshot) {
+		return snapshot.Turn.HasValue
+			|| snapshot.WarWearinessPoints.HasValue
+			|| snapshot.AtWar.HasValue
+			|| snapshot.HasTriggeredGoldenAge.HasValue
+			|| snapshot.GoldenAgeTurnsRemaining.HasValue
+			|| snapshot.ResisterCount.HasValue;
+	}
+
+	private static SavePlayer FindPlayer(SaveGame save, string civilization, string oracleName) {
+		List<SavePlayer> matchingPlayers = save.Players.Where(candidate =>
+			string.Equals(candidate.civilization, civilization, StringComparison.OrdinalIgnoreCase)
 		).ToList();
-		if (matches.Count != 1) {
+		if (matchingPlayers.Count != 1) {
 			throw new InvalidDataException(
-				$"Oracle '{oracleName}' expected exactly one city named '{cityName}' owned by "
-				+ $"{player.civilization}, but found {matches.Count}."
+				$"Oracle '{oracleName}' expected exactly one civilization '{civilization}', "
+				+ $"but found {matchingPlayers.Count}."
 			);
 		}
-		return matches[0];
+		return matchingPlayers[0];
 	}
 }
