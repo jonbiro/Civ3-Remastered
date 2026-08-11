@@ -35,7 +35,9 @@ Pillage and field capture of non-defending units remain follow-up work because t
 
 ## Per-turn behavior
 
-While at war, hostile-territory exposure adds one point. If a level is active and neither side occupies the other's territory, one point is recovered. During peace, the signed balance moves toward zero by `ceil(abs(points) / 20)` each turn.
+While at war, hostile-territory exposure adds one point. If a level is active and neither side occupies the other's territory, one point is recovered.
+
+During peace, the signed balance first moves toward zero by `ceil(abs(points) / 20)` each turn. If that percentage decay leaves a positive weariness level active, the normal one-point level recovery is then applied. This preserves the reverse-engineered boundary behavior, including 31 → 29 and 121 → 113 → 106.
 
 ## Citizen effects
 
