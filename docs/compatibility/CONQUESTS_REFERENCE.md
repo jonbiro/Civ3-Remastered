@@ -110,7 +110,7 @@ The original Civilopedia and BIQ establish which governments are affected, that 
 - High weariness produces 50% and 100% unhappy laborers at levels 1-2 and government collapse at level 3
 - each opponent's citizen contribution is rounded down independently before totals are added
 - a Police Station removes a 25%-of-city contribution from the aggregate unhappy result; Universal Suffrage removes one more unhappy citizen
-- peace retains the signed history but moves it toward zero by `ceil(abs(points) / 20)` each turn
+- peace first moves the signed history toward zero by `ceil(abs(points) / 20)`; if the remaining positive total still has an active weariness level, normal one-point recovery also applies, preserving boundaries such as 31 -> 29 and 121 -> 113 -> 106
 
 The event values represented by the compatibility engine are -30 for a qualifying direct defensive war; +1 for a turn spent in enemy territory, a non-defending-unit loss, an improvement loss, or bombardment to one hit point; +2 for a lost attacking unit or a defending combat unit being attacked; and +16/+17 for losing a size-one/larger city. Exact original AI asymmetries and declaration-cause exceptions remain oracle work.
 
@@ -143,6 +143,10 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 - Enemy naval units at war block water-trade paths; moving or removing naval units invalidates the cached network so blockades update.
 - Airports merge otherwise disconnected city trade segments.
 - Building and technology changes that create new water/air trade capabilities invalidate the cached trade network.
+- Strategic and luxury resources are counted within each connected trade segment and filtered by the player's resource-prerequisite technology knowledge.
+- A road-connected strategic resource unlocks production options whose resource requirements are otherwise unmet.
+- Harbor connections carry strategic resources between disconnected land segments.
+- A connected luxury changes citizen moods; breaking its route and invalidating the trade cache removes both access and the mood effect.
 - Per-turn resistance uses the imported culture band and ordered government-pair modifier.
 - Peace with the resister's mother country ends resistance without requiring a garrison.
 - Only qualifying ground combat units count toward the per-turn garrison cap; sea, air, artillery-only, worker, and settler units do not.
@@ -164,7 +168,6 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 - Exact original resistance random-call ordering and mixed-nationality handling need original-game oracle fixtures.
 - Exact war-weariness declaration-cause exceptions, AI/human asymmetries, event ordering, pillage, and field capture behavior need original-game oracle fixtures.
 - Exact Golden Age first/last affected yield-cycle sequencing needs original-game save fixtures.
-- A single connected strategic or luxury resource supplies all connected cities in a civilization; broader end-to-end resource-distribution fixtures are still needed.
 
 ## Test policy
 
@@ -179,7 +182,6 @@ The public-CI compatibility suite covers both imported rule parameters and engin
 
 Continue the source-derived behavior work in this order:
 
-1. end-to-end strategic/luxury resource distribution across connected trade networks
-2. original-save oracle fixtures for war-weariness event ordering and declaration causes
-3. original-save oracle fixtures for Golden Age sequencing
-4. original-save oracle fixtures for resistance random-call ordering
+1. original-save oracle fixtures for war-weariness event ordering and declaration causes
+2. original-save oracle fixtures for Golden Age sequencing
+3. original-save oracle fixtures for resistance random-call ordering
