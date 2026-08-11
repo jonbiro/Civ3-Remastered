@@ -15,6 +15,10 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Sea/ocean technology gates and naval blockades
 - Trade-network cache invalidation for diplomacy, connector buildings, trade-enabling technologies, and naval movement/removal
 - Capital connectivity feeding distance corruption
+- Strategic and luxury resource counts distributed through each city's connected land, harbor, and airport trade segment
+- Resource prerequisite technologies controlling strategic/luxury visibility without changing physical route connectivity
+- Connected strategic resources feeding unit and building production requirements
+- Connected luxury resources feeding citizen moods, including removal when the route is broken
 - Per-turn resistance continuation and quelling, including peace, culture bands, government-pair modifiers, garrison eligibility, difficulty limits, food consumption, and starvation priority
 - Golden Age once-per-civilization state and native save round trips
 - Import of active/previous Golden Age state from Civ III saves
@@ -34,10 +38,9 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 
 ## Next behavior slices
 
-1. End-to-end strategic/luxury resource distribution through the trade network
-2. Original-game oracle fixtures for war-weariness event ordering, AI asymmetries, and declaration causes
-3. Original-game save fixtures for exact Golden Age trigger-cycle timing
-4. Original-game save fixtures for exact resistance random-call ordering
+1. Original-game oracle fixtures for war-weariness event ordering, AI asymmetries, and declaration causes
+2. Original-game save fixtures for exact Golden Age trigger-cycle timing
+3. Original-game save fixtures for exact resistance random-call ordering
 
 ## Rules for updating this file
 
