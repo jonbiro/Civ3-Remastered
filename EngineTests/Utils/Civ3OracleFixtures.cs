@@ -128,7 +128,7 @@ public static class Civ3OracleFixtures {
 			throw new InvalidDataException(
 				$"Oracle manifest '{manifest.Name}' must name cityName for resistance signals."
 			);
-n		}
+		}
 
 		return manifest;
 	}
