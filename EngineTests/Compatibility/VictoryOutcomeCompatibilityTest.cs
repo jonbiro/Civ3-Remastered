@@ -192,7 +192,8 @@ public class VictoryOutcomeCompatibilityTest {
 
 	[Fact]
 	public void OutcomeSurvivesNativeSaveJsonClone() {
-		ID winner = ID.None("winner");
+		ID.Factory ids = new();
+		ID winner = ids.CreateID("player");
 		SaveGame saved = new() {
 			Outcome = new GameOutcome {
 				Turn = 77,
