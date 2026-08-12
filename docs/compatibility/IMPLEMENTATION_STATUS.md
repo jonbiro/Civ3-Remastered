@@ -35,23 +35,30 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Explicit city-culture border thresholds at 10 / 100 / 1,000 / 10,000 / 20,000 culture
 - BIQ Cultural Victory enable, one-city target, and civilization target imported without hardcoded scenario assumptions
 - One-city and civilization-wide Cultural Victory qualification with deterministic exact-boundary tests
-- Simultaneous cultural qualifications preserved for the future common victory-resolution layer
+- Common persisted victory-outcome model shared by victory types
+- BIQ Conquest and Domination enable flags plus Domination land/population thresholds imported unchanged
+- Cultural, Conquest, and Domination victory claims evaluated at full-round boundaries
+- Domination land and population thresholds checked with exact integer ratios, excluding water from world-land totals
+- Native saves persist the first recorded outcome and its claims
+- Simultaneous claims for one civilization resolve to that winner; cross-civilization simultaneous claims remain preserved and unresolved until original precedence is established
 
 ## Imported and available, but not yet behavior-complete
 
 - Government assimilation chance
 - Culture-producing building/wonder construction age needed for the original 1,000-year culture-doubling rule
+- BIQ Space Race, Diplomatic, Victory Point, Wonder, and turn-limit victory configuration is parseable but does not yet have a complete common-outcome evaluator
 
 ## Next behavior slices
 
 1. Populate the private oracle matrix for war-weariness event ordering, AI asymmetries, declaration causes, and peace boundaries
 2. Populate private save fixtures for exact Golden Age trigger-cycle timing and end boundaries
 3. Populate private save fixtures for exact resistance random-call ordering and mixed-nationality handling
-4. Build a common victory-resolution and persisted game-outcome layer, beginning with the now-tested Cultural Victory qualifications
-5. Complete citizen mood, disorder, celebration, and government-transition compatibility beyond the already covered luxury and war-weariness effects
-6. Add reliable building construction-time state and verify the 1,000-year culture-doubling boundary against original-game fixtures
+4. Complete Space Race and Diplomatic victory runtime state/evaluation, then Wonder/Victory Point/Histograph where scenario state supports them
+5. Add game-over presentation/input gating driven by the persisted common outcome
+6. Complete citizen mood, disorder, celebration, and government-transition compatibility beyond the already covered luxury and war-weariness effects
+7. Add reliable building construction-time state and verify the 1,000-year culture-doubling boundary against original-game fixtures
 
-See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix. See `docs/compatibility/CULTURE_VICTORY.md` for the culture evidence boundary and remaining timing work.
+See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix. See `docs/compatibility/CULTURE_VICTORY.md` and `docs/compatibility/VICTORY_OUTCOMES.md` for the culture and common-outcome evidence boundaries.
 
 ## Rules for updating this file
 

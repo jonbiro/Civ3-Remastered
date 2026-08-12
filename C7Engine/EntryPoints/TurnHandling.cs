@@ -89,6 +89,11 @@ namespace C7Engine {
 					player.MaybeStartGoldenAgeFromWonders(gameData);
 				}
 
+				// Victory conditions are evaluated only after every civilization has
+				// received the same complete yield cycle. This avoids player-list
+				// iteration order deciding simultaneous end-of-round conditions.
+				VictoryResolver.RecordAtTurnBoundary(gameData);
+
 				// Now that the turn is ending, do all the bookkeeping for the
 				// start of the next turn. We don't put the "hasPlayedThisTurn"
 				// logic in OnBeginTurn because OnBeginTurn is called when a

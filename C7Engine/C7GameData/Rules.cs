@@ -10,6 +10,10 @@ namespace C7GameData {
 		public bool AllowCulturalVictory;
 		public int OneCityCultureWin;
 		public int AllCitiesCultureWin;
+		public bool AllowConquestVictory;
+		public bool AllowDominationVictory;
+		public int DominationTerrainPercent;
+		public int DominationPopulationPercent;
 		public int MaximumLevel1CitySize;
 		public int MaximumLevel2CitySize;
 		public int FoodNeededToGrowForLevel1Cities = 20;

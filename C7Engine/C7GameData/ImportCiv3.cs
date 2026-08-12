@@ -2061,6 +2061,10 @@ namespace C7GameData {
 			save.Rules.AllowCulturalVictory = game.CulturalVictory;
 			save.Rules.OneCityCultureWin = game.OneCityCultureWin;
 			save.Rules.AllCitiesCultureWin = game.AllCitiesCultureWin;
+			save.Rules.AllowConquestVictory = game.ConquestVictory;
+			save.Rules.AllowDominationVictory = game.DominationVictory;
+			save.Rules.DominationTerrainPercent = game.DominationTerrain;
+			save.Rules.DominationPopulationPercent = game.DominationPopulation;
 			save.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
 			if (rule.StartUnitType1 >= 0) {
 				save.Rules.StartUnitType1 = theBiq.Prto[rule.StartUnitType1].Name;

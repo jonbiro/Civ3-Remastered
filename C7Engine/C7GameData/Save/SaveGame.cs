@@ -81,6 +81,7 @@ namespace C7GameData.Save {
 				GameDifficulty = data.gameDifficulty,
 				Rules = data.rules,
 				TimeOptions = data.timeOptions,
+				Outcome = data.outcome,
 				TerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
 				GameModeConfig = data.gameModeConfig,
 			};
@@ -195,6 +196,7 @@ namespace C7GameData.Save {
 				experienceLevels = ExperienceLevels,
 				rules = Rules,
 				timeOptions = TimeOptions,
+				outcome = Outcome,
 				GreatWondersBuilt = GreatWondersBuilt,
 			};
 
@@ -447,6 +449,7 @@ namespace C7GameData.Save {
 		public Dictionary<string, int> HealRates = new Dictionary<string, int>();
 		public Rules Rules = new();
 		public TimeOptions TimeOptions = new();
+		public GameOutcome Outcome;
 		public List<SaveTech> Techs = new();
 		public List<CitizenType> CitizenTypes = new();
 		public List<SaveTerraform> TerraForms = new();
