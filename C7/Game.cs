@@ -132,7 +132,8 @@ public partial class Game : Node {
 
 	public enum GameState {
 		PlayerTurn,
-		ComputerTurn
+		ComputerTurn,
+		GameOver,
 	}
 	public GameState CurrentState { get; private set; } = GameState.PlayerTurn;
 
@@ -206,6 +207,9 @@ public partial class Game : Node {
 		log.Information("Now in game!");
 
 		TurnHandling.OnBeginTurn();
+		if (EngineStorage.gameData.outcome?.HasClaims == true) {
+			OnGameOutcome(EngineStorage.gameData.outcome);
+		}
 
 		loadTimer.Stop();
 		TimeSpan stopwatchElapsed = loadTimer.Elapsed;
@@ -305,6 +309,9 @@ public partial class Game : Node {
 			case MsgStartTurn mST:
 				OnPlayerStartTurn();
 				break;
+			case MsgGameOutcome mGO:
+				OnGameOutcome(mGO.outcome);
+				break;
 			case MsgShowCityScreen mSCS:
 				ShowCityScreenForCity(gameData, mSCS.city);
 				break;
@@ -403,6 +410,29 @@ public partial class Game : Node {
 					PopupOverlay.PopupCategory.Advisor);
 				break;
 		}
+	}
+
+	private void OnGameOutcome(GameOutcome outcome) {
+		if (outcome?.HasClaims != true) return;
+
+		CurrentState = GameState.GameOver;
+		turnsLeftToFastForward = 0;
+		SetGotoMode(false);
+		setBombard(null);
+
+		string message;
+		if (outcome.IsResolved) {
+			Player winner = EngineStorage.gameData.players.Find(player => player.id == outcome.WinnerId);
+			string civilizationName = winner?.civilization?.noun ?? "A civilization";
+			string victoryTypes = string.Join(", ", outcome.Claims.Select(claim => claim.Type.ToString()));
+			message = winner == controller
+				? $"Victory! The {civilizationName} have achieved {victoryTypes} victory. You may continue inspecting the map."
+				: $"Game Over. The {civilizationName} have achieved {victoryTypes} victory. You may continue inspecting the map.";
+		} else {
+			message = "Game Over. Multiple civilizations reached victory conditions on the same turn. The simultaneous result has been preserved for compatibility review.";
+		}
+
+		popupOverlay.ShowPopup(new InformationalPopup(message), PopupOverlay.PopupCategory.Info);
 	}
 
 	public override void _Process(double delta) {
@@ -560,6 +590,19 @@ public partial class Game : Node {
 
 	private void HandleMouseButtonInput(InputEventMouseButton eventMouseButton) {
 		if (CurrentState == GameState.ComputerTurn) return;
+		if (CurrentState == GameState.GameOver) {
+			if (eventMouseButton.ButtonIndex == MouseButton.Left) {
+				HandleLeftMouseButton(eventMouseButton);
+			} else if (eventMouseButton.ButtonIndex == MouseButton.Right && !eventMouseButton.IsPressed()) {
+				Tile tile = PositionToTile(eventMouseButton.Position);
+				if (tile != null) ShowTileInfo(tile);
+			} else if (eventMouseButton.ButtonIndex == MouseButton.WheelUp) {
+				AdjustZoom(0.1f);
+			} else if (eventMouseButton.ButtonIndex == MouseButton.WheelDown) {
+				AdjustZoom(-0.1f);
+			}
+			return;
+		}
 		if (eventMouseButton.ButtonIndex == MouseButton.Left) {
 			HandleLeftMouseButton(eventMouseButton);
 		} else if (eventMouseButton.ButtonIndex == MouseButton.Right && !eventMouseButton.IsPressed()) {
@@ -757,7 +800,11 @@ public partial class Game : Node {
 	}
 
 	private void HandleKeyboardInput(InputEventKey eventKeyDown) {
-		if (eventKeyDown.Keycode == Godot.Key.O && eventKeyDown.ShiftPressed && eventKeyDown.IsCommandOrControlPressed() && eventKeyDown.AltPressed) {
+		if (CurrentState != GameState.GameOver
+			&& eventKeyDown.Keycode == Godot.Key.O
+			&& eventKeyDown.ShiftPressed
+			&& eventKeyDown.IsCommandOrControlPressed()
+			&& eventKeyDown.AltPressed) {
 			ToggleObserverMode();
 		}
 
@@ -951,6 +998,10 @@ public partial class Game : Node {
 
 		// never poll for actions if UI elements are visible
 		if (HasVisibleModal()) {
+			return;
+		}
+
+		if (CurrentState == GameState.GameOver && currentAction == C7Action.EndTurn) {
 			return;
 		}
 

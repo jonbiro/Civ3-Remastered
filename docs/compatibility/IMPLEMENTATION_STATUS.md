@@ -41,6 +41,10 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Domination land and population thresholds checked with exact integer ratios, excluding water from world-land totals
 - Native saves persist the first recorded outcome and its claims
 - Simultaneous claims for one civilization resolve to that winner; cross-civilization simultaneous claims remain preserved and unresolved until original precedence is established
+- Turn advancement stops after the first recorded full-round outcome instead of beginning another round
+- Frontend restores completed saves into a dedicated non-mutating `GameOver` state while retaining postgame inspection
+- Gameplay engine messages are rejected both when sent after game over and when dequeued after an outcome was recorded
+- Victory, defeat, and unresolved simultaneous outcomes receive neutral postgame presentation without claiming unverified original-screen fidelity
 
 ## Imported and available, but not yet behavior-complete
 
@@ -54,11 +58,10 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 2. Populate private save fixtures for exact Golden Age trigger-cycle timing and end boundaries
 3. Populate private save fixtures for exact resistance random-call ordering and mixed-nationality handling
 4. Complete Space Race and Diplomatic victory runtime state/evaluation, then Wonder/Victory Point/Histograph where scenario state supports them
-5. Add game-over presentation/input gating driven by the persisted common outcome
-6. Complete citizen mood, disorder, celebration, and government-transition compatibility beyond the already covered luxury and war-weariness effects
-7. Add reliable building construction-time state and verify the 1,000-year culture-doubling boundary against original-game fixtures
+5. Complete citizen mood, disorder, celebration, and government-transition compatibility beyond the already covered luxury and war-weariness effects
+6. Add reliable building construction-time state and verify the 1,000-year culture-doubling boundary against original-game fixtures
 
-See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix. See `docs/compatibility/CULTURE_VICTORY.md` and `docs/compatibility/VICTORY_OUTCOMES.md` for the culture and common-outcome evidence boundaries.
+See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix. See `docs/compatibility/CULTURE_VICTORY.md`, `docs/compatibility/VICTORY_OUTCOMES.md`, and `docs/compatibility/GAME_OVER_STATE.md` for the culture, outcome, and postgame evidence boundaries.
 
 ## Rules for updating this file
 

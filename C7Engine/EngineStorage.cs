@@ -29,6 +29,9 @@ namespace C7Engine {
 		public static void ProcessNextMessageToEngine() {
 			if (pendingMessages.Count > 0) {
 				var msg = pendingMessages.Dequeue();
+				if (gameData?.outcome?.HasClaims == true && !msg.AllowedAfterGameOver) {
+					return;
+				}
 				msg.process();
 
 				var type = msg.GetType();

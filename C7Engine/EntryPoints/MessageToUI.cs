@@ -53,6 +53,14 @@ namespace C7Engine {
 
 	public class MsgStartTurn : MessageToUI { }
 
+	public class MsgGameOutcome : MessageToUI {
+		public GameOutcome outcome;
+
+		public MsgGameOutcome(GameOutcome outcome) {
+			this.outcome = outcome;
+		}
+	}
+
 	public class MsgShowScienceAdvisor : MessageToUI { }
 
 	public class MsgUpdateUiAfterDomesticChange : MessageToUI { }

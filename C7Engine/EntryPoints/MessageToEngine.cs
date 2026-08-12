@@ -8,14 +8,20 @@ namespace C7Engine {
 
 	public abstract class MessageToEngine {
 		public abstract void process();
+		public virtual bool AllowedAfterGameOver => false;
 
-		public void send() {
+		public bool send() {
+			if (EngineStorage.gameData?.outcome?.HasClaims == true && !AllowedAfterGameOver) {
+				return false;
+			}
 			EngineStorage.pendingMessages.Enqueue(this);
+			return true;
 		}
 	}
 
 	public class MsgShutdownEngine : MessageToEngine {
 		private ILogger log = Log.ForContext<MsgShutdownEngine>();
+		public override bool AllowedAfterGameOver => true;
 
 		public override void process() {
 			log.Information("Engine received shutdown message.");
