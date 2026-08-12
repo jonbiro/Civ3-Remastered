@@ -5,7 +5,7 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 ## Covered in the current compatibility stack
 
 - Civilization III Complete installation validation and original-file discovery
-- Core Conquests BIQ parameter parity for difficulty, governments, terrain defense, experience, resources, trade connectors, culture/resistance bands, war-weariness modes, Golden Age duration, and Golden-Age-triggering units
+- Core Conquests BIQ parameter parity for difficulty, governments, terrain defense, experience, resources, trade connectors, culture/resistance bands, war-weariness modes, Golden Age duration, Golden-Age-triggering units, and Cultural Victory settings
 - Four-slot technology prerequisite import
 - Road and railroad movement costs
 - Terrain, fortification, river, settlement-size, Fortress, and Barricade defense
@@ -32,20 +32,26 @@ This is a concise engineering inventory, not a percentage-complete claim. A subs
 - Low/high government mood effects, per-opponent rounding, Police Station mitigation, and Universal Suffrage mitigation
 - High-war-weariness government collapse into the normal anarchy transition
 - Private paired-SAV oracle harness with stable civilization/city selectors, exact before/after snapshots, exact deltas, path-containment checks, and public-CI-safe opt-in behavior
+- Explicit city-culture border thresholds at 10 / 100 / 1,000 / 10,000 / 20,000 culture
+- BIQ Cultural Victory enable, one-city target, and civilization target imported without hardcoded scenario assumptions
+- One-city and civilization-wide Cultural Victory qualification with deterministic exact-boundary tests
+- Simultaneous cultural qualifications preserved for the future common victory-resolution layer
 
 ## Imported and available, but not yet behavior-complete
 
 - Government assimilation chance
+- Culture-producing building/wonder construction age needed for the original 1,000-year culture-doubling rule
 
 ## Next behavior slices
 
 1. Populate the private oracle matrix for war-weariness event ordering, AI asymmetries, declaration causes, and peace boundaries
 2. Populate private save fixtures for exact Golden Age trigger-cycle timing and end boundaries
 3. Populate private save fixtures for exact resistance random-call ordering and mixed-nationality handling
-4. Implement and verify city culture accumulation, border growth, and cultural victory behavior
+4. Build a common victory-resolution and persisted game-outcome layer, beginning with the now-tested Cultural Victory qualifications
 5. Complete citizen mood, disorder, celebration, and government-transition compatibility beyond the already covered luxury and war-weariness effects
+6. Add reliable building construction-time state and verify the 1,000-year culture-doubling boundary against original-game fixtures
 
-See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix.
+See `docs/compatibility/ORIGINAL_SAVE_ORACLES.md` for the private fixture contract and required capture matrix. See `docs/compatibility/CULTURE_VICTORY.md` for the culture evidence boundary and remaining timing work.
 
 ## Rules for updating this file
 
