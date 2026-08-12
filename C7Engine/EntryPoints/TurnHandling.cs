@@ -92,7 +92,13 @@ namespace C7Engine {
 				// Victory conditions are evaluated only after every civilization has
 				// received the same complete yield cycle. This avoids player-list
 				// iteration order deciding simultaneous end-of-round conditions.
-				VictoryResolver.RecordAtTurnBoundary(gameData);
+				GameOutcome outcome = VictoryResolver.RecordAtTurnBoundary(gameData);
+				if (outcome?.HasClaims == true) {
+					new MsgGameOutcome(outcome).send();
+					stopwatch.Stop();
+					log.Information($"Game outcome recorded on turn {outcome.Turn}; stopping turn advancement");
+					return;
+				}
 
 				// Now that the turn is ending, do all the bookkeeping for the
 				// start of the next turn. We don't put the "hasPlayedThisTurn"
