@@ -19,8 +19,10 @@ public sealed class VictoryClaim {
 	public ID PlayerId;
 	public ID CityId;
 	public int CurrentValue;
+	public int TotalValue;
 	public int RequiredValue;
 	public int SecondaryCurrentValue;
+	public int SecondaryTotalValue;
 	public int SecondaryRequiredValue;
 }
 
@@ -47,6 +49,20 @@ public static class VictoryResolver {
 		AddConquestClaims(gameData, outcome);
 		AddDominationClaims(gameData, outcome);
 		return outcome;
+	}
+
+	/// <summary>
+	/// Records the first turn-boundary victory state without overwriting it on
+	/// later turns. An unresolved simultaneous result is still a real outcome
+	/// and must be preserved for oracle-backed precedence handling.
+	/// </summary>
+	public static GameOutcome RecordAtTurnBoundary(GameData gameData) {
+		if (gameData == null) return null;
+		if (gameData.outcome?.HasClaims == true) return gameData.outcome;
+
+		GameOutcome evaluated = Evaluate(gameData);
+		if (evaluated.HasClaims) gameData.outcome = evaluated;
+		return gameData.outcome;
 	}
 
 	private static IEnumerable<Player> EligiblePlayers(GameData gameData) {
@@ -80,6 +96,7 @@ public static class VictoryResolver {
 			Type = VictoryType.Conquest,
 			PlayerId = survivors[0].id,
 			CurrentValue = 1,
+			TotalValue = 1,
 			RequiredValue = 1,
 		});
 	}
@@ -109,8 +126,10 @@ public static class VictoryResolver {
 				Type = VictoryType.Domination,
 				PlayerId = player.id,
 				CurrentValue = ownedLand,
+				TotalValue = landTiles.Count,
 				RequiredValue = gameData.rules.DominationTerrainPercent,
 				SecondaryCurrentValue = population,
+				SecondaryTotalValue = worldPopulation,
 				SecondaryRequiredValue = gameData.rules.DominationPopulationPercent,
 			});
 		}
