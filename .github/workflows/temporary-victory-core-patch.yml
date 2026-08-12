@@ -24,75 +24,52 @@ jobs:
         run: |
           from pathlib import Path
 
+          def insert_after(path, anchor, addition, label):
+              source = path.read_text()
+              if addition.strip() in source:
+                  return
+              if anchor not in source:
+                  raise SystemExit(f"Expected {label} anchor not found")
+              path.write_text(source.replace(anchor, anchor + addition, 1))
+
           import_path = Path("C7Engine/C7GameData/ImportCiv3.cs")
-          source = import_path.read_text()
-          old = '''\t\t\tGAME game = biq.Game[0];
-          \t\t\tsave.Rules.AllowCulturalVictory = game.CulturalVictory;
-          \t\t\tsave.Rules.OneCityCultureWin = game.OneCityCultureWin;
-          \t\t\tsave.Rules.AllCitiesCultureWin = game.AllCitiesCultureWin;
-          '''
-          new = '''\t\t\tGAME game = biq.Game[0];
-          \t\t\tsave.Rules.AllowCulturalVictory = game.CulturalVictory;
-          \t\t\tsave.Rules.OneCityCultureWin = game.OneCityCultureWin;
-          \t\t\tsave.Rules.AllCitiesCultureWin = game.AllCitiesCultureWin;
-          \t\t\tsave.Rules.AllowConquestVictory = game.ConquestVictory;
-          \t\t\tsave.Rules.AllowDominationVictory = game.DominationVictory;
-          \t\t\tsave.Rules.DominationTerrainPercent = game.DominationTerrain;
-          \t\t\tsave.Rules.DominationPopulationPercent = game.DominationPopulation;
-          '''
-          if old not in source:
-              raise SystemExit("Expected culture victory import block not found")
-          import_path.write_text(source.replace(old, new, 1))
+          insert_after(
+              import_path,
+              "\t\t\tsave.Rules.AllCitiesCultureWin = game.AllCitiesCultureWin;\n",
+              "\t\t\tsave.Rules.AllowConquestVictory = game.ConquestVictory;\n"
+              "\t\t\tsave.Rules.AllowDominationVictory = game.DominationVictory;\n"
+              "\t\t\tsave.Rules.DominationTerrainPercent = game.DominationTerrain;\n"
+              "\t\t\tsave.Rules.DominationPopulationPercent = game.DominationPopulation;\n",
+              "ImportCiv3 cultural victory",
+          )
 
           data_path = Path("C7Engine/C7GameData/GameData.cs")
-          source = data_path.read_text()
-          old = '''\t\tpublic Rules rules;
-          \t\tpublic TimeOptions timeOptions;
-          '''
-          new = '''\t\tpublic Rules rules;
-          \t\tpublic TimeOptions timeOptions;
-          \t\tpublic GameOutcome outcome;
-          '''
-          if old not in source:
-              raise SystemExit("Expected GameData rules/time block not found")
-          data_path.write_text(source.replace(old, new, 1))
+          insert_after(
+              data_path,
+              "\t\tpublic TimeOptions timeOptions;\n",
+              "\t\tpublic GameOutcome outcome;\n",
+              "GameData TimeOptions",
+          )
 
           save_path = Path("C7Engine/C7GameData/Save/SaveGame.cs")
-          source = save_path.read_text()
-          replacements = [
-              (
-                  '''\t\t\t\tTimeOptions = data.timeOptions,
-                  \t\t\t\tTerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
-                  ''',
-                  '''\t\t\t\tTimeOptions = data.timeOptions,
-                  \t\t\t\tOutcome = data.outcome,
-                  \t\t\t\tTerrainImprovements = data.terrainImprovements.ConvertAll(ti => ti.ToSaveTerrainImprovement()),
-                  '''
-              ),
-              (
-                  '''\t\t\t\ttimeOptions = TimeOptions,
-                  \t\t\t\tGreatWondersBuilt = GreatWondersBuilt,
-                  ''',
-                  '''\t\t\t\ttimeOptions = TimeOptions,
-                  \t\t\t\toutcome = Outcome,
-                  \t\t\t\tGreatWondersBuilt = GreatWondersBuilt,
-                  '''
-              ),
-              (
-                  '''\t\tpublic Rules Rules = new();
-                  \t\tpublic TimeOptions TimeOptions = new();
-                  ''',
-                  '''\t\tpublic Rules Rules = new();
-                  \t\tpublic TimeOptions TimeOptions = new();
-                  \t\tpublic GameOutcome Outcome;
-                  '''
-              ),
-          ]
-          for old, new in replacements:
-              if old not in source:
-                  raise SystemExit("Expected SaveGame persistence block not found")
-              source = source.replace(old, new, 1)
-          save_path.write_text(source)
+          insert_after(
+              save_path,
+              "\t\t\t\tTimeOptions = data.timeOptions,\n",
+              "\t\t\t\tOutcome = data.outcome,\n",
+              "SaveGame FromGameData TimeOptions",
+          )
+          insert_after(
+              save_path,
+              "\t\t\t\ttimeOptions = TimeOptions,\n",
+              "\t\t\t\toutcome = Outcome,\n",
+              "SaveGame InitializeGameData TimeOptions",
+          )
+          insert_after(
+              save_path,
+              "\t\tpublic TimeOptions TimeOptions = new();\n",
+              "\t\tpublic GameOutcome Outcome;\n",
+              "SaveGame TimeOptions field",
+          )
 
       - name: Commit and self-remove
         run: |
