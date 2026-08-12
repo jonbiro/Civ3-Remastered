@@ -116,7 +116,7 @@ public class CulturalVictoryCompatibilityTest {
 	public void EvaluateAllPreservesSimultaneousQualifiersForCommonVictoryResolution() {
 		var (first, _) = MakeCity(20_000, "First");
 		var (second, _) = MakeCity(20_000, "Second");
-		GameData gameData = new(customSeed: 1234) {
+		C7GameData.GameData gameData = new(customSeed: 1234) {
 			rules = new Rules {
 				AllowCulturalVictory = true,
 				OneCityCultureWin = 20_000,
