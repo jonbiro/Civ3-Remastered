@@ -1,0 +1,85 @@
+name: Temporary culture compatibility patch
+
+on:
+  push:
+    branches:
+      - agent/culture-victory-compatibility
+    paths:
+      - .github/workflows/temporary-culture-compatibility-patch.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout culture branch
+        uses: actions/checkout@v6
+        with:
+          ref: agent/culture-victory-compatibility
+          fetch-depth: 0
+
+      - name: Apply culture compatibility edits
+        shell: python
+        run: |
+          from pathlib import Path
+
+          city_path = Path("C7Engine/C7GameData/City.cs")
+          city = city_path.read_text()
+          old_city = '''\t\tpublic int GetBorderExpansionLevel() {
+          \t\t\t// Give ourselves a minimum of 1 culture to avoid taking the log of 0
+          \t\t\tint culture = Math.Max(1, GetCulture());
+
+          \t\t\t// Take the log10 of culture, rounding down (so a culture of 123
+          \t\t\t// would be 2, a culture of 5 would be 0, etc) and then add one to
+          \t\t\t// get the expansion level. With 0-9 culture our culture goal is 10^1
+          \t\t\t// and we have one tile of borders, with 10-99 our culture goal is
+          \t\t\t// 10^2 and we have two tiles of borders.
+          \t\t\treturn (int)Math.Floor(Math.Log10(culture)) + 1;
+          \t\t}
+          '''
+          new_city = '''\t\tprivate static readonly int[] CultureBorderThresholds = [10, 100, 1_000, 10_000, 20_000];
+
+          \t\tpublic int GetBorderExpansionLevel() {
+          \t\t\tint culture = Math.Max(0, GetCulture());
+          \t\t\tint level = 1;
+          \t\t\tforeach (int threshold in CultureBorderThresholds) {
+          \t\t\t\tif (culture < threshold) break;
+          \t\t\t\t++level;
+          \t\t\t}
+          \t\t\treturn level;
+          \t\t}
+          '''
+          if old_city not in city:
+              raise SystemExit("Expected City.GetBorderExpansionLevel donor block was not found")
+          city_path.write_text(city.replace(old_city, new_city, 1))
+
+          import_path = Path("C7Engine/C7GameData/ImportCiv3.cs")
+          source = import_path.read_text()
+          old_import = '''\t\t\tsave.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
+          \t\t\tsave.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
+          '''
+          new_import = '''\t\t\tsave.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
+
+          \t\t\t// Victory-condition configuration lives in GAME rather than RULE.
+          \t\t\t// Import the scenario values directly so custom BIQs keep their
+          \t\t\t// own culture targets instead of inheriting stock assumptions.
+          \t\t\tGAME game = biq.Game[0];
+          \t\t\tsave.Rules.AllowCulturalVictory = game.CulturalVictory;
+          \t\t\tsave.Rules.OneCityCultureWin = game.OneCityCultureWin;
+          \t\t\tsave.Rules.AllCitiesCultureWin = game.AllCitiesCultureWin;
+          \t\t\tsave.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
+          '''
+          if old_import not in source:
+              raise SystemExit("Expected ImportRules Golden Age block was not found")
+          import_path.write_text(source.replace(old_import, new_import, 1))
+
+      - name: Commit source changes and remove helper
+        run: |
+          git rm .github/workflows/temporary-culture-compatibility-patch.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add C7Engine/C7GameData/City.cs C7Engine/C7GameData/ImportCiv3.cs
+          git commit -m "Import culture victory rules and fix border thresholds"
+          git push origin HEAD:agent/culture-victory-compatibility
