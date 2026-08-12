@@ -707,16 +707,16 @@ namespace C7GameData {
 			return result;
 		}
 
-		public int GetBorderExpansionLevel() {
-			// Give ourselves a minimum of 1 culture to avoid taking the log of 0
-			int culture = Math.Max(1, GetCulture());
+		private static readonly int[] CultureBorderThresholds = [10, 100, 1_000, 10_000, 20_000];
 
-			// Take the log10 of culture, rounding down (so a culture of 123
-			// would be 2, a culture of 5 would be 0, etc) and then add one to
-			// get the expansion level. With 0-9 culture our culture goal is 10^1
-			// and we have one tile of borders, with 10-99 our culture goal is
-			// 10^2 and we have two tiles of borders.
-			return (int)Math.Floor(Math.Log10(culture)) + 1;
+		public int GetBorderExpansionLevel() {
+			int culture = Math.Max(0, GetCulture());
+			int level = 1;
+			foreach (int threshold in CultureBorderThresholds) {
+				if (culture < threshold) break;
+				++level;
+			}
+			return level;
 		}
 
 		public void AddBuilding(Building building) {

@@ -2053,6 +2053,14 @@ namespace C7GameData {
 			save.Rules.CitizenValueInShields = rule.CitizenValueInShields;
 			save.Rules.TurnPenaltyForEachHurrySacrifice = rule.TurnPenaltyForEachHurrySacrifice;
 			save.Rules.GoldenAgeDuration = rule.GoldenAgeDuration;
+
+			// Victory-condition configuration lives in GAME rather than RULE.
+			// Import the scenario values directly so custom BIQs keep their
+			// own culture targets instead of inheriting stock assumptions.
+			GAME game = biq.Game[0];
+			save.Rules.AllowCulturalVictory = game.CulturalVictory;
+			save.Rules.OneCityCultureWin = game.OneCityCultureWin;
+			save.Rules.AllCitiesCultureWin = game.AllCitiesCultureWin;
 			save.GameDifficulty = save.Difficulties[rule.DefaultDifficultyLevel];
 			if (rule.StartUnitType1 >= 0) {
 				save.Rules.StartUnitType1 = theBiq.Prto[rule.StartUnitType1].Name;

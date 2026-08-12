@@ -7,6 +7,9 @@ namespace C7GameData {
 		public int CitizenValueInShields;
 		public int TurnPenaltyForEachHurrySacrifice;
 		public int GoldenAgeDuration;
+		public bool AllowCulturalVictory;
+		public int OneCityCultureWin;
+		public int AllCitiesCultureWin;
 		public int MaximumLevel1CitySize;
 		public int MaximumLevel2CitySize;
 		public int FoodNeededToGrowForLevel1Cities = 20;

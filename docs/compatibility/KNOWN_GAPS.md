@@ -36,6 +36,14 @@ The original Civilopedia establishes triggers, duration, and yields, but does no
 
 **Required verification:** capture paired original-game saves immediately before and after combat and wonder-completion triggers to confirm the first and final affected production/commerce cycles and the `GoldenAgeEndTurn` conversion boundary through the private oracle harness.
 
+## BLOCKED: 1,000-year culture doubling lacks reliable construction-time state
+
+**Area:** city culture / buildings / time model
+
+The original Civilopedia explicitly says that the culture contribution of each Wonder or improvement doubles after 1,000 years. The donor engine stores a `year` field on `CityBuilding`, but newly completed buildings currently receive the placeholder value `1` with an existing TODO for in-game year tracking. Applying the multiplier to that placeholder would produce incorrect Classic behavior.
+
+**Required implementation and verification:** persist the real building/wonder construction time, establish the age calculation across BC/AD and alternate scenario time units, import construction timing from original saves where available, then capture a paired original-game fixture across the first doubled culture cycle. Until those inputs are trustworthy, Classic mode must not guess the multiplier boundary.
+
 ## Policy
 
 Do not work around known differences by changing Classic-mode expected results. Classic mode should retain the original Civilization III behavior as the compatibility target. Enhanced/Remastered profiles may intentionally diverge only after the Classic expectation is represented by tests.
