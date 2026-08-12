@@ -1,0 +1,48 @@
+name: Temporary victory turn-boundary patch
+
+on:
+  push:
+    branches:
+      - agent/victory-outcome-core
+    paths:
+      - .github/workflows/temporary-victory-turn-boundary.yml
+
+permissions:
+  contents: write
+
+jobs:
+  apply-patch:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: agent/victory-outcome-core
+          fetch-depth: 0
+      - name: Add round-boundary outcome evaluation
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path("C7Engine/EntryPoints/TurnHandling.cs")
+          source = path.read_text()
+          marker = '''\t\t\t\t// Now that the turn is ending, do all the bookkeeping for the
+          \t\t\t\t// start of the next turn. We don't put the "hasPlayedThisTurn"
+          '''
+          addition = '''\t\t\t\t// Victory conditions are evaluated only after every civilization has
+          \t\t\t\t// received the same complete yield cycle. This avoids player-list
+          \t\t\t\t// iteration order deciding simultaneous end-of-round conditions.
+          \t\t\t\tVictoryResolver.RecordAtTurnBoundary(gameData);
+
+          '''
+          if "VictoryResolver.RecordAtTurnBoundary(gameData);" not in source:
+              if marker not in source:
+                  raise SystemExit("Expected end-of-round bookkeeping marker not found")
+              source = source.replace(marker, addition + marker, 1)
+              path.write_text(source)
+      - name: Commit and self-remove
+        run: |
+          git rm .github/workflows/temporary-victory-turn-boundary.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add C7Engine/EntryPoints/TurnHandling.cs
+          git commit -m "Evaluate victory claims at full-round boundaries"
+          git push origin HEAD:agent/victory-outcome-core
